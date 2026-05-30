@@ -1,0 +1,597 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0515B841895097E8248FF8D8 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868FF183B4B3E59C345BA4E0 /* ChatView.swift */; };
+		09A1288EF217F3B96D322C3B /* StripePaymentSheet in Frameworks */ = {isa = PBXBuildFile; productRef = 14BE03F4E0693FEAC2F84506 /* StripePaymentSheet */; };
+		16CCBAA92C5D6BFB940BC1F8 /* ApplyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547E1415038E71673ED9136F /* ApplyView.swift */; };
+		2B67C3F153C1900E84F2D998 /* PostTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A47007FA31062FBB56F62A /* PostTaskView.swift */; };
+		323B5BD61D982D1F5205E342 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = AD4097AD278E79704399A0CD /* Kingfisher */; };
+		41FDC3FC6184D8EEC41313D0 /* PostServiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 443BA68B9B43524ADA33A1C8 /* PostServiceView.swift */; };
+		42EB1BCF3980C7D2B5DF5EA4 /* TaskDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 296F9B89E43CFB33494EDCE4 /* TaskDetailView.swift */; };
+		4471911A46557920CC3E2FE6 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90F68A2E69611E989F1B27C /* LoginView.swift */; };
+		4EA2236E0426AF1D86F33990 /* TaskBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E009EE02088764FA18667057 /* TaskBoardView.swift */; };
+		5175DCFBC98CD7492AB93FFB /* VerificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FFA72FF2D2800A79990870E /* VerificationView.swift */; };
+		53BB2695E0315FBB2F33BA42 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0798AD90EEBEAC580BF866BA /* AuthManager.swift */; };
+		5BF5108907B8318675953F78 /* WalletView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71D624539A86B3D09DCC988 /* WalletView.swift */; };
+		5D5463753B8D64D7FCD082F9 /* TaskBoardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4AE0E7777D1AB53F44E8F16 /* TaskBoardViewModel.swift */; };
+		60EA8C6F0FD45EF636DAC43F /* TasklyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B94C9650F6320A12312763E /* TasklyApp.swift */; };
+		637BC907DD43078E5977F809 /* StripeApplePay in Frameworks */ = {isa = PBXBuildFile; productRef = 71AD2F4ABD05156E9B2BD62F /* StripeApplePay */; };
+		7D4ECDE42B04C5412F51AB27 /* TaskCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8CC21D5C9E9874D59672A14 /* TaskCardView.swift */; };
+		8468011433D81CBD1F6D4728 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 202CBF5C2F6B6FCB1B46198E /* Models.swift */; };
+		A2F81897F4B03554C8F26AC8 /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A0922D86D9253016777A18 /* ReviewView.swift */; };
+		A7B45C3804360F6EC1C0E105 /* SubmitCompletionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37636C1A5DB6E17018596CB2 /* SubmitCompletionView.swift */; };
+		AB1960588087D5C0303F44AF /* MessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C204952F646871EA2A7AF06 /* MessagesView.swift */; };
+		ACFA8C38D575E81525AAD3AD /* ServiceCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02B2E208C128AD143876D06 /* ServiceCardView.swift */; };
+		AD99DC1194BDEF9A519637D0 /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEC2C619C83A71CEA7FA9171 /* AppRouter.swift */; };
+		B5718B7DE007FD353B2046E7 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6BA09E15EE7160EC9900E2A /* MainTabView.swift */; };
+		BA85682BB1625E375BC61A9C /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = E29167430521225AF4E3CD19 /* Alamofire */; };
+		BC62B09E97CDE87B82AF17BE /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7954227E1D305AD3971B49D2 /* ProfileView.swift */; };
+		C66FCE72E7D1F3519E68D6FB /* PaymentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7A437457AC9E73E7CBBB982 /* PaymentView.swift */; };
+		D5D37543E05BE7B7258797DD /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA26B4C195EFB04C5CEEF297 /* NetworkManager.swift */; };
+		E9CB2AC161B0E5F7740A38F6 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B86FA702642959B9C2B89835 /* RootView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0798AD90EEBEAC580BF866BA /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		07A0922D86D9253016777A18 /* ReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewView.swift; sourceTree = "<group>"; };
+		202CBF5C2F6B6FCB1B46198E /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		296F9B89E43CFB33494EDCE4 /* TaskDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDetailView.swift; sourceTree = "<group>"; };
+		2EE1D3967DB3162DF57DF2D4 /* Taskly.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Taskly.entitlements; sourceTree = "<group>"; };
+		37636C1A5DB6E17018596CB2 /* SubmitCompletionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmitCompletionView.swift; sourceTree = "<group>"; };
+		3B94C9650F6320A12312763E /* TasklyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasklyApp.swift; sourceTree = "<group>"; };
+		3FFA72FF2D2800A79990870E /* VerificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationView.swift; sourceTree = "<group>"; };
+		443BA68B9B43524ADA33A1C8 /* PostServiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostServiceView.swift; sourceTree = "<group>"; };
+		547E1415038E71673ED9136F /* ApplyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplyView.swift; sourceTree = "<group>"; };
+		627F805F842924DE2CF043DA /* Taskly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Taskly.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6C204952F646871EA2A7AF06 /* MessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesView.swift; sourceTree = "<group>"; };
+		7954227E1D305AD3971B49D2 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		868FF183B4B3E59C345BA4E0 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		A4AE0E7777D1AB53F44E8F16 /* TaskBoardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskBoardViewModel.swift; sourceTree = "<group>"; };
+		B3A47007FA31062FBB56F62A /* PostTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostTaskView.swift; sourceTree = "<group>"; };
+		B86FA702642959B9C2B89835 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		C71D624539A86B3D09DCC988 /* WalletView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletView.swift; sourceTree = "<group>"; };
+		D02B2E208C128AD143876D06 /* ServiceCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceCardView.swift; sourceTree = "<group>"; };
+		D6BA09E15EE7160EC9900E2A /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		E009EE02088764FA18667057 /* TaskBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskBoardView.swift; sourceTree = "<group>"; };
+		E7A437457AC9E73E7CBBB982 /* PaymentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentView.swift; sourceTree = "<group>"; };
+		E8CC21D5C9E9874D59672A14 /* TaskCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskCardView.swift; sourceTree = "<group>"; };
+		F90F68A2E69611E989F1B27C /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		FA26B4C195EFB04C5CEEF297 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
+		FEC2C619C83A71CEA7FA9171 /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A427391AEBC73F88E473DD8B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BA85682BB1625E375BC61A9C /* Alamofire in Frameworks */,
+				323B5BD61D982D1F5205E342 /* Kingfisher in Frameworks */,
+				09A1288EF217F3B96D322C3B /* StripePaymentSheet in Frameworks */,
+				637BC907DD43078E5977F809 /* StripeApplePay in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		15FCB4765075183E910BEEF6 /* Messages */ = {
+			isa = PBXGroup;
+			children = (
+				AA1449C9CC0AD8A4262DA4C6 /* Views */,
+			);
+			path = Messages;
+			sourceTree = "<group>";
+		};
+		189A3F09ED1B44828306B77C /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				3D3DBDEBE1A850C2B7415CDA /* Auth */,
+				15FCB4765075183E910BEEF6 /* Messages */,
+				8DCB66D47C91559016E21D9E /* Profile */,
+				2031136C572A0F539480D8C3 /* Tasks */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		2031136C572A0F539480D8C3 /* Tasks */ = {
+			isa = PBXGroup;
+			children = (
+				D269516557A6F6777450AE0A /* ViewModels */,
+				D3B34345A0DB6E9E67BE076B /* Views */,
+			);
+			path = Tasks;
+			sourceTree = "<group>";
+		};
+		25D1D5CB478FCA159D6D513F = {
+			isa = PBXGroup;
+			children = (
+				C2FA36A9EB44E62A465197FC /* Sources */,
+				F2F19343D94EE08DD914F6B3 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		2C20A2FAE6BC894BE0D51DEE /* Taskly */ = {
+			isa = PBXGroup;
+			children = (
+				A1309DA8A4C8CC75FCAAC7B9 /* App */,
+				5F87C15B650B81631D9E7744 /* Core */,
+				189A3F09ED1B44828306B77C /* Features */,
+				2EE1D3967DB3162DF57DF2D4 /* Taskly.entitlements */,
+			);
+			path = Taskly;
+			sourceTree = "<group>";
+		};
+		385326321CC2CC4C14B66C56 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				0798AD90EEBEAC580BF866BA /* AuthManager.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		3D3DBDEBE1A850C2B7415CDA /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				658B2506DBC474F29B8D1DF6 /* Views */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		573AC4D725A4774FEB335E0A /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				7954227E1D305AD3971B49D2 /* ProfileView.swift */,
+				3FFA72FF2D2800A79990870E /* VerificationView.swift */,
+				C71D624539A86B3D09DCC988 /* WalletView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		5A43D1FCAC5BC55987A1173F /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				FA26B4C195EFB04C5CEEF297 /* NetworkManager.swift */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		5F87C15B650B81631D9E7744 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				6B7810F65FD543A6D5A8DE4B /* Models */,
+				5A43D1FCAC5BC55987A1173F /* Network */,
+				385326321CC2CC4C14B66C56 /* Utils */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		658B2506DBC474F29B8D1DF6 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				F90F68A2E69611E989F1B27C /* LoginView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		6B7810F65FD543A6D5A8DE4B /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				202CBF5C2F6B6FCB1B46198E /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		8DCB66D47C91559016E21D9E /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				573AC4D725A4774FEB335E0A /* Views */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		A1309DA8A4C8CC75FCAAC7B9 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				FEC2C619C83A71CEA7FA9171 /* AppRouter.swift */,
+				D6BA09E15EE7160EC9900E2A /* MainTabView.swift */,
+				B86FA702642959B9C2B89835 /* RootView.swift */,
+				3B94C9650F6320A12312763E /* TasklyApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		AA1449C9CC0AD8A4262DA4C6 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				868FF183B4B3E59C345BA4E0 /* ChatView.swift */,
+				6C204952F646871EA2A7AF06 /* MessagesView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C2FA36A9EB44E62A465197FC /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				2C20A2FAE6BC894BE0D51DEE /* Taskly */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		D269516557A6F6777450AE0A /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				A4AE0E7777D1AB53F44E8F16 /* TaskBoardViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		D3B34345A0DB6E9E67BE076B /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				547E1415038E71673ED9136F /* ApplyView.swift */,
+				E7A437457AC9E73E7CBBB982 /* PaymentView.swift */,
+				443BA68B9B43524ADA33A1C8 /* PostServiceView.swift */,
+				B3A47007FA31062FBB56F62A /* PostTaskView.swift */,
+				07A0922D86D9253016777A18 /* ReviewView.swift */,
+				D02B2E208C128AD143876D06 /* ServiceCardView.swift */,
+				37636C1A5DB6E17018596CB2 /* SubmitCompletionView.swift */,
+				E009EE02088764FA18667057 /* TaskBoardView.swift */,
+				E8CC21D5C9E9874D59672A14 /* TaskCardView.swift */,
+				296F9B89E43CFB33494EDCE4 /* TaskDetailView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		F2F19343D94EE08DD914F6B3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				627F805F842924DE2CF043DA /* Taskly.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		69C69AC21BD2A814D314B899 /* Taskly */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2E7876B34897004B96FAB7B2 /* Build configuration list for PBXNativeTarget "Taskly" */;
+			buildPhases = (
+				B752D4938B7E5D985BF22E0A /* Sources */,
+				A427391AEBC73F88E473DD8B /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Taskly;
+			packageProductDependencies = (
+				E29167430521225AF4E3CD19 /* Alamofire */,
+				AD4097AD278E79704399A0CD /* Kingfisher */,
+				14BE03F4E0693FEAC2F84506 /* StripePaymentSheet */,
+				71AD2F4ABD05156E9B2BD62F /* StripeApplePay */,
+			);
+			productName = Taskly;
+			productReference = 627F805F842924DE2CF043DA /* Taskly.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9D32F22194E97A594A6B543B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					69C69AC21BD2A814D314B899 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = AAD60025E75266C50BEB48B9 /* Build configuration list for PBXProject "Taskly" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 25D1D5CB478FCA159D6D513F;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				3B7638B60BA3AE7E8AA39634 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				BEBB2043BF16C7749DACB206 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				475DA007164D2AC485853976 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = F2F19343D94EE08DD914F6B3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				69C69AC21BD2A814D314B899 /* Taskly */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B752D4938B7E5D985BF22E0A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AD99DC1194BDEF9A519637D0 /* AppRouter.swift in Sources */,
+				16CCBAA92C5D6BFB940BC1F8 /* ApplyView.swift in Sources */,
+				53BB2695E0315FBB2F33BA42 /* AuthManager.swift in Sources */,
+				0515B841895097E8248FF8D8 /* ChatView.swift in Sources */,
+				4471911A46557920CC3E2FE6 /* LoginView.swift in Sources */,
+				B5718B7DE007FD353B2046E7 /* MainTabView.swift in Sources */,
+				AB1960588087D5C0303F44AF /* MessagesView.swift in Sources */,
+				8468011433D81CBD1F6D4728 /* Models.swift in Sources */,
+				D5D37543E05BE7B7258797DD /* NetworkManager.swift in Sources */,
+				C66FCE72E7D1F3519E68D6FB /* PaymentView.swift in Sources */,
+				41FDC3FC6184D8EEC41313D0 /* PostServiceView.swift in Sources */,
+				2B67C3F153C1900E84F2D998 /* PostTaskView.swift in Sources */,
+				BC62B09E97CDE87B82AF17BE /* ProfileView.swift in Sources */,
+				A2F81897F4B03554C8F26AC8 /* ReviewView.swift in Sources */,
+				E9CB2AC161B0E5F7740A38F6 /* RootView.swift in Sources */,
+				ACFA8C38D575E81525AAD3AD /* ServiceCardView.swift in Sources */,
+				A7B45C3804360F6EC1C0E105 /* SubmitCompletionView.swift in Sources */,
+				4EA2236E0426AF1D86F33990 /* TaskBoardView.swift in Sources */,
+				5D5463753B8D64D7FCD082F9 /* TaskBoardViewModel.swift in Sources */,
+				7D4ECDE42B04C5412F51AB27 /* TaskCardView.swift in Sources */,
+				42EB1BCF3980C7D2B5DF5EA4 /* TaskDetailView.swift in Sources */,
+				60EA8C6F0FD45EF636DAC43F /* TasklyApp.swift in Sources */,
+				5175DCFBC98CD7492AB93FFB /* VerificationView.swift in Sources */,
+				5BF5108907B8318675953F78 /* WalletView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		4EEAFB9580D1DB4ECBA1805D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = K65RWCXUXM;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		52B4802B21F1AEF10A83D080 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = K65RWCXUXM;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		77B211CB6E27E4BB13E10DD9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/Taskly/Taskly.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = K65RWCXUXM;
+				INFOPLIST_FILE = Sources/Taskly/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.taskly.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C528381DC5F6DB911776E640 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Sources/Taskly/Taskly.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = K65RWCXUXM;
+				INFOPLIST_FILE = Sources/Taskly/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.taskly.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2E7876B34897004B96FAB7B2 /* Build configuration list for PBXNativeTarget "Taskly" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C528381DC5F6DB911776E640 /* Debug */,
+				77B211CB6E27E4BB13E10DD9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AAD60025E75266C50BEB48B9 /* Build configuration list for PBXProject "Taskly" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				52B4802B21F1AEF10A83D080 /* Debug */,
+				4EEAFB9580D1DB4ECBA1805D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		3B7638B60BA3AE7E8AA39634 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.9.0;
+			};
+		};
+		475DA007164D2AC485853976 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stripe/stripe-ios-spm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 23.18.0;
+			};
+		};
+		BEBB2043BF16C7749DACB206 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.10.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		14BE03F4E0693FEAC2F84506 /* StripePaymentSheet */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 475DA007164D2AC485853976 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */;
+			productName = StripePaymentSheet;
+		};
+		71AD2F4ABD05156E9B2BD62F /* StripeApplePay */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 475DA007164D2AC485853976 /* XCRemoteSwiftPackageReference "stripe-ios-spm" */;
+			productName = StripeApplePay;
+		};
+		AD4097AD278E79704399A0CD /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BEBB2043BF16C7749DACB206 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		E29167430521225AF4E3CD19 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3B7638B60BA3AE7E8AA39634 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 9D32F22194E97A594A6B543B /* Project object */;
+}
