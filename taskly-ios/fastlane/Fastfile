@@ -1,0 +1,231 @@
+default_platform(:ios)
+
+# ─── Config ──────────────────────────────────────────────────────────────────
+BUNDLE_ID    = "taskly.cnirv.com"
+SCHEME       = "Taskly"
+TEAM_ID      = "K65RWCXUXM"
+
+PROJECT_ROOT = File.expand_path("../../", __FILE__)
+PROJECT      = "#{PROJECT_ROOT}/Taskly.xcodeproj"
+BUILD_DIR    = "#{PROJECT_ROOT}/build"
+
+# ─── App Store Connect API Key (loaded from fastlane/.env) ───────────────────
+ASC_KEY_ID   = ENV["ASC_KEY_ID"] || "3PCS4L758V"
+ASC_KEY_PATH = File.expand_path("../#{ENV['ASC_KEY_FILE'] || 'AuthKey_3PCS4L758V.p8'}", __FILE__)
+
+def asc_issuer_id
+  id = ENV["ASC_ISSUER_ID"].to_s.strip
+  UI.user_error!("❌ 缺少 ASC_ISSUER_ID，请检查 fastlane/.env") if id.empty?
+  id
+end
+
+def asc_api_key
+  app_store_connect_api_key(
+    key_id:       ASC_KEY_ID,
+    issuer_id:    asc_issuer_id,
+    key_filepath: ASC_KEY_PATH,
+    duration:     1200,
+    in_house:     false,
+  )
+end
+
+# Regenerate the Xcode project from project.yml so the build always matches source.
+def regenerate_project
+  Dir.chdir(PROJECT_ROOT) { sh("xcodegen generate") }
+end
+
+# Next build number = (latest on TestFlight) + 1, so re-uploads never collide.
+# Version (CFBundleShortVersionString) stays whatever MARKETING_VERSION is.
+def next_build_number(api_key)
+  current = begin
+    latest_testflight_build_number(
+      api_key:              api_key,
+      app_identifier:       BUNDLE_ID,
+      initial_build_number: 1,
+    )
+  rescue => e
+    UI.important("读取 TestFlight 构建号失败（可能尚无构建），从 1 起：#{e.message}")
+    1
+  end
+  current.to_i + 1
+end
+
+platform :ios do
+
+  # ── Verify the API key is wired correctly ──────────────────────────────────
+  desc "验证 App Store Connect API Key 是否可用"
+  lane :verify_asc do
+    asc_api_key
+    UI.success("✅ API Key 正常  Key ID=#{ASC_KEY_ID}  Issuer=#{asc_issuer_id}")
+  end
+
+  desc "打印当前版本的审核联系人信息（诊断）"
+  lane :show_review do
+    asc_api_key
+    app = Spaceship::ConnectAPI::App.find(BUNDLE_ID)
+    ver = app.get_edit_app_store_version || app.get_live_app_store_version
+    UI.header("App Store Version: #{ver&.version_string}  state=#{ver&.app_store_state}")
+    rd = ver.fetch_app_store_review_detail
+    UI.message("contactFirstName: #{rd.contact_first_name.inspect}")
+    UI.message("contactLastName : #{rd.contact_last_name.inspect}")
+    UI.message("contactEmail    : #{rd.contact_email.inspect}")
+    UI.message("contactPhone    : #{rd.contact_phone.inspect}")
+    UI.message("demoAccountName : #{rd.demo_account_name.inspect}")
+    UI.message("demoRequired    : #{rd.demo_account_required.inspect}")
+  end
+
+  desc "列出 App Store Connect 上 1.0 版本的所有构建号（诊断）"
+  lane :builds do
+    api_key = asc_api_key
+    n = latest_testflight_build_number(api_key: api_key, app_identifier: BUNDLE_ID, version: "1.0.0", initial_build_number: 0) rescue "?"
+    UI.message("latest_testflight_build_number(1.0.0) = #{n}")
+    app = Spaceship::ConnectAPI::App.find(BUNDLE_ID)
+    builds = app.get_builds(includes: "preReleaseVersion", sort: "-uploadedDate", limit: 15)
+    UI.header("Recent builds (#{builds.size})")
+    builds.each do |b|
+      UI.message("  v#{b.pre_release_version&.version}  build #{b.version}  state=#{b.processing_state}  uploaded=#{b.uploaded_date}  expired=#{b.expired}")
+    end
+  end
+
+  desc "列出此 API Key 可见的 App 和 Bundle ID（诊断）"
+  lane :diag do
+    asc_api_key
+    UI.header("App Store Connect 上的 App")
+    Spaceship::ConnectAPI::App.all.each { |a| UI.message("  #{a.bundle_id}  |  #{a.name}") }
+    UI.header("开发者门户里的 Bundle ID")
+    Spaceship::ConnectAPI::BundleId.all.each { |b| UI.message("  #{b.identifier}  |  #{b.name}") }
+  end
+
+  # ── Enable "Sign in with Apple" capability on the App ID ───────────────────
+  desc "在 App ID 上开启 Sign in with Apple 能力（幂等）"
+  lane :enable_siwa do
+    asc_api_key
+    bundle = Spaceship::ConnectAPI::BundleId.all.find { |b| b.identifier == BUNDLE_ID }
+    UI.user_error!("找不到 Bundle ID #{BUNDLE_ID}") unless bundle
+    # NB: fastlane 2.219's post_bundle_id_capability adds a bogus `capability`
+    # relationship the current ASC API rejects, so we build the body ourselves.
+    body = {
+      data: {
+        type: "bundleIdCapabilities",
+        attributes: {
+          capabilityType: "APPLE_ID_AUTH",
+          # "Enable as a primary App ID" — matches the `Default` value in Taskly.entitlements.
+          settings: [
+            { key: "APPLE_ID_AUTH_APP_CONSENT", options: [{ key: "PRIMARY_APP_CONSENT" }] }
+          ]
+        },
+        relationships: { bundleId: { data: { type: "bundleIds", id: bundle.id } } }
+      }
+    }
+    begin
+      Spaceship::ConnectAPI.provisioning_request_client.post("bundleIdCapabilities", body)
+      UI.success("✅ 已开启 Sign in with Apple")
+    rescue => e
+      if e.message =~ /already exist|ENTITLEMENT_ALREADY|duplicate|already enabled/i
+        UI.success("✅ Sign in with Apple 已是开启状态")
+      else
+        UI.error("失败：#{e.message}")
+        raise
+      end
+    end
+  end
+
+  # ── Build only (no upload) ─────────────────────────────────────────────────
+  desc "仅打包出 App Store .ipa（不上传）"
+  lane :build do
+    api_key = asc_api_key
+    regenerate_project
+    # Allow an explicit override (BUILD_NUMBER=N) when TestFlight processing lags and
+    # latest_testflight_build_number returns a stale value, which would collide.
+    bn = (ENV["BUILD_NUMBER"] && !ENV["BUILD_NUMBER"].empty?) ? ENV["BUILD_NUMBER"].to_i : next_build_number(api_key)
+    UI.message("📦 构建号 = #{bn}")
+    gym(
+      project:          PROJECT,
+      scheme:           SCHEME,
+      configuration:    "Release",
+      export_method:    "app-store",
+      export_options:   { method: "app-store", signingStyle: "automatic", teamID: TEAM_ID },
+      # Hand the ASC API key + -allowProvisioningUpdates to xcodebuild so both the
+      # archive AND export steps can create/fetch the managed profile via the key
+      # (no Xcode-logged-in Apple ID, no 2FA). gym appends `xcargs` to BOTH the
+      # archive and export commands, so we set it ONLY here — adding the same auth to
+      # `export_xcargs` too would pass -authenticationKeyPath twice and xcodebuild
+      # errors with "may only be provided once".
+      xcargs:           "-allowProvisioningUpdates " \
+                        "-authenticationKeyPath #{ASC_KEY_PATH} " \
+                        "-authenticationKeyID #{ASC_KEY_ID} " \
+                        "-authenticationKeyIssuerID #{asc_issuer_id} " \
+                        "CURRENT_PROJECT_VERSION=#{bn}",
+      clean:            true,
+      output_directory: BUILD_DIR,
+      output_name:      "#{SCHEME}.ipa",
+    )
+  end
+
+  # ── Build + upload to TestFlight ───────────────────────────────────────────
+  desc "打包并上传到 TestFlight"
+  lane :beta do
+    api_key = asc_api_key
+    build
+    pilot(
+      api_key:                           api_key,
+      app_identifier:                    BUNDLE_ID,
+      ipa:                               "#{BUILD_DIR}/#{SCHEME}.ipa",
+      skip_waiting_for_build_processing: true,
+    )
+    UI.success("🎉 已上传 TestFlight")
+  end
+
+  # ── Build + upload binary to App Store (no auto-submit) ────────────────────
+  desc "打包 + 上传 IPA 到 App Store Connect（不自动提交审核）"
+  lane :release do
+    api_key = asc_api_key
+    build
+    deliver(
+      api_key:                           api_key,
+      app_identifier:                    BUNDLE_ID,
+      ipa:                               "#{BUILD_DIR}/#{SCHEME}.ipa",
+      skip_metadata:                     true,
+      skip_screenshots:                  true,
+      skip_app_version_update:           true,
+      submit_for_review:                 false,
+      automatic_release:                 false,
+      force:                             true,
+      precheck_include_in_app_purchases: false,
+    )
+    UI.success("🎉 IPA 已上传，到 App Store Connect 查看")
+  end
+
+  # ── Upload screenshots only (no new IPA, no text metadata) ─────────────────
+  desc "只上传截图（覆盖现有），不动二进制和文字元数据"
+  lane :upload_screenshots do
+    deliver(
+      api_key:                           asc_api_key,
+      app_identifier:                    BUNDLE_ID,
+      screenshots_path:                  "#{PROJECT_ROOT}/fastlane/screenshots",
+      skip_binary_upload:                true,
+      skip_metadata:                     true,
+      overwrite_screenshots:             true,
+      force:                             true,
+      precheck_include_in_app_purchases: false,
+    )
+    UI.success("🎉 截图已上传")
+  end
+
+  # ── Upload text metadata only (no new IPA) ─────────────────────────────────
+  desc "只上传文字元数据（名称/副标题/关键词/描述/更新说明），不需要新 IPA"
+  lane :upload_metadata do
+    deliver(
+      api_key:                           asc_api_key,
+      app_identifier:                    BUNDLE_ID,
+      metadata_path:                     "#{PROJECT_ROOT}/fastlane/metadata",
+      skip_binary_upload:                true,
+      skip_screenshots:                  true,
+      skip_app_version_update:           false,
+      force:                             true,
+      precheck_include_in_app_purchases: false,
+    )
+    UI.success("🎉 元数据已上传")
+  end
+
+end

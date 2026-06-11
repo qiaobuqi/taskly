@@ -44,7 +44,7 @@ struct VerificationView: View {
         VStack(spacing: 20) {
             Image(systemName: "checkmark.seal.fill").font(.system(size: 64)).foregroundStyle(.blue)
             Text("Identity Verified").font(.title2.bold())
-            Text("Your identity has been verified. You can now accept tasks.")
+            Text("Your identity has been verified. A Verified badge now appears on your profile.")
                 .multilineTextAlignment(.center).foregroundStyle(.secondary)
             Button("Done") { dismiss() }.buttonStyle(.borderedProminent)
         }
@@ -54,6 +54,15 @@ struct VerificationView: View {
 
     private var formView: some View {
         Form {
+            // A previous submission was rejected — tell the user and let them resubmit.
+            if verificationStatus == .rejected {
+                Section {
+                    Label("Your previous submission was rejected. Please check your details and documents, then submit again.",
+                          systemImage: "exclamationmark.triangle.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.orange)
+                }
+            }
             Section("Personal Info") {
                 TextField("Full name (as on document)", text: $realName)
                 Picker("Document Type", selection: $documentType) {

@@ -11,6 +11,15 @@ type Config struct {
 	Stripe   StripeConfig
 	Apple    AppleConfig
 	Commission CommissionConfig
+	DirectMail DirectMailConfig
+}
+
+type DirectMailConfig struct {
+	AccessKeyID     string `mapstructure:"access_key_id"`
+	AccessKeySecret string `mapstructure:"access_key_secret"`
+	AccountName     string `mapstructure:"account_name"` // verified DirectMail sender, e.g. no-reply@cnirv.com
+	FromAlias       string `mapstructure:"from_alias"`
+	Region          string
 }
 
 type ServerConfig struct {
@@ -24,6 +33,7 @@ type DatabaseConfig struct {
 	User     string
 	Password string
 	Name     string
+	Charset  string
 	SSLMode  string `mapstructure:"sslmode"`
 }
 

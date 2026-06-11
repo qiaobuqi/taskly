@@ -5,3 +5,13 @@
 xcuserdata/
 DerivedData/
 *.xcworkspace/xcuserdata/
+
+# fastlane secrets & build artifacts — never commit
+fastlane/.env
+fastlane/*.p8
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/test_output/
+build/
+*.ipa
+*.app.dSYM.zip

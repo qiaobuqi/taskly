@@ -10,6 +10,10 @@
 		0515B841895097E8248FF8D8 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 868FF183B4B3E59C345BA4E0 /* ChatView.swift */; };
 		09A1288EF217F3B96D322C3B /* StripePaymentSheet in Frameworks */ = {isa = PBXBuildFile; productRef = 14BE03F4E0693FEAC2F84506 /* StripePaymentSheet */; };
 		16CCBAA92C5D6BFB940BC1F8 /* ApplyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547E1415038E71673ED9136F /* ApplyView.swift */; };
+		18A5FAE3D676374D1198A94A /* ModerationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED343132959E1F796317D50 /* ModerationSheet.swift */; };
+		1B741B79176A6B587BC7FF2F /* TasklyLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D130CDB7D0CE7B63D2C52EC6 /* TasklyLogo.swift */; };
+		1F9993D0ABEB24AA5042ACAD /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A227AC088CC53C046AFBF7BF /* WebView.swift */; };
+		242622F1993EAA58B276B013 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6C3EE0EF99DE89105E19F4E /* DesignSystem.swift */; };
 		2B67C3F153C1900E84F2D998 /* PostTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A47007FA31062FBB56F62A /* PostTaskView.swift */; };
 		323B5BD61D982D1F5205E342 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = AD4097AD278E79704399A0CD /* Kingfisher */; };
 		41FDC3FC6184D8EEC41313D0 /* PostServiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 443BA68B9B43524ADA33A1C8 /* PostServiceView.swift */; };
@@ -23,23 +27,29 @@
 		60EA8C6F0FD45EF636DAC43F /* TasklyApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B94C9650F6320A12312763E /* TasklyApp.swift */; };
 		637BC907DD43078E5977F809 /* StripeApplePay in Frameworks */ = {isa = PBXBuildFile; productRef = 71AD2F4ABD05156E9B2BD62F /* StripeApplePay */; };
 		7D4ECDE42B04C5412F51AB27 /* TaskCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8CC21D5C9E9874D59672A14 /* TaskCardView.swift */; };
+		817F88CBC912DB191E59D8F7 /* PrivacyConsentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0E26F637C1E62A7378283B5 /* PrivacyConsentView.swift */; };
 		8468011433D81CBD1F6D4728 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 202CBF5C2F6B6FCB1B46198E /* Models.swift */; };
 		A2F81897F4B03554C8F26AC8 /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A0922D86D9253016777A18 /* ReviewView.swift */; };
 		A7B45C3804360F6EC1C0E105 /* SubmitCompletionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37636C1A5DB6E17018596CB2 /* SubmitCompletionView.swift */; };
+		AA44AD2F8E602BF62A1CDE20 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 80EEE6CB1756C192BC6D6503 /* Assets.xcassets */; };
 		AB1960588087D5C0303F44AF /* MessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C204952F646871EA2A7AF06 /* MessagesView.swift */; };
 		ACFA8C38D575E81525AAD3AD /* ServiceCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02B2E208C128AD143876D06 /* ServiceCardView.swift */; };
 		AD99DC1194BDEF9A519637D0 /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEC2C619C83A71CEA7FA9171 /* AppRouter.swift */; };
 		B5718B7DE007FD353B2046E7 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6BA09E15EE7160EC9900E2A /* MainTabView.swift */; };
 		BA85682BB1625E375BC61A9C /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = E29167430521225AF4E3CD19 /* Alamofire */; };
 		BC62B09E97CDE87B82AF17BE /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7954227E1D305AD3971B49D2 /* ProfileView.swift */; };
+		C61ABAA468CB0BA54ECD2F86 /* Analytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9543966ED65ECD73FC814914 /* Analytics.swift */; };
 		C66FCE72E7D1F3519E68D6FB /* PaymentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7A437457AC9E73E7CBBB982 /* PaymentView.swift */; };
 		D5D37543E05BE7B7258797DD /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA26B4C195EFB04C5CEEF297 /* NetworkManager.swift */; };
+		D95E599705D7438714E38571 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 70BF9431D33DE15B8A2952B6 /* PrivacyInfo.xcprivacy */; };
 		E9CB2AC161B0E5F7740A38F6 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B86FA702642959B9C2B89835 /* RootView.swift */; };
+		EF3F0EF494D8FFE68AAB195F /* SignInPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C99BACCD2C7CC8C6C305FBF /* SignInPromptView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0798AD90EEBEAC580BF866BA /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
 		07A0922D86D9253016777A18 /* ReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewView.swift; sourceTree = "<group>"; };
+		1ED343132959E1F796317D50 /* ModerationSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModerationSheet.swift; sourceTree = "<group>"; };
 		202CBF5C2F6B6FCB1B46198E /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		296F9B89E43CFB33494EDCE4 /* TaskDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDetailView.swift; sourceTree = "<group>"; };
 		2EE1D3967DB3162DF57DF2D4 /* Taskly.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Taskly.entitlements; sourceTree = "<group>"; };
@@ -50,13 +60,21 @@
 		547E1415038E71673ED9136F /* ApplyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplyView.swift; sourceTree = "<group>"; };
 		627F805F842924DE2CF043DA /* Taskly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Taskly.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6C204952F646871EA2A7AF06 /* MessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesView.swift; sourceTree = "<group>"; };
+		6C99BACCD2C7CC8C6C305FBF /* SignInPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPromptView.swift; sourceTree = "<group>"; };
+		70BF9431D33DE15B8A2952B6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		7954227E1D305AD3971B49D2 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		80EEE6CB1756C192BC6D6503 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		868FF183B4B3E59C345BA4E0 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		9543966ED65ECD73FC814914 /* Analytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analytics.swift; sourceTree = "<group>"; };
+		A227AC088CC53C046AFBF7BF /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 		A4AE0E7777D1AB53F44E8F16 /* TaskBoardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskBoardViewModel.swift; sourceTree = "<group>"; };
+		B0E26F637C1E62A7378283B5 /* PrivacyConsentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyConsentView.swift; sourceTree = "<group>"; };
 		B3A47007FA31062FBB56F62A /* PostTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostTaskView.swift; sourceTree = "<group>"; };
 		B86FA702642959B9C2B89835 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		C6C3EE0EF99DE89105E19F4E /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		C71D624539A86B3D09DCC988 /* WalletView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletView.swift; sourceTree = "<group>"; };
 		D02B2E208C128AD143876D06 /* ServiceCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceCardView.swift; sourceTree = "<group>"; };
+		D130CDB7D0CE7B63D2C52EC6 /* TasklyLogo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasklyLogo.swift; sourceTree = "<group>"; };
 		D6BA09E15EE7160EC9900E2A /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		E009EE02088764FA18667057 /* TaskBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskBoardView.swift; sourceTree = "<group>"; };
 		E7A437457AC9E73E7CBBB982 /* PaymentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaymentView.swift; sourceTree = "<group>"; };
@@ -123,6 +141,8 @@
 				A1309DA8A4C8CC75FCAAC7B9 /* App */,
 				5F87C15B650B81631D9E7744 /* Core */,
 				189A3F09ED1B44828306B77C /* Features */,
+				A2378BC976D144528F8C01A1 /* Resources */,
+				70BF9431D33DE15B8A2952B6 /* PrivacyInfo.xcprivacy */,
 				2EE1D3967DB3162DF57DF2D4 /* Taskly.entitlements */,
 			);
 			path = Taskly;
@@ -168,6 +188,11 @@
 				6B7810F65FD543A6D5A8DE4B /* Models */,
 				5A43D1FCAC5BC55987A1173F /* Network */,
 				385326321CC2CC4C14B66C56 /* Utils */,
+				9543966ED65ECD73FC814914 /* Analytics.swift */,
+				C6C3EE0EF99DE89105E19F4E /* DesignSystem.swift */,
+				1ED343132959E1F796317D50 /* ModerationSheet.swift */,
+				D130CDB7D0CE7B63D2C52EC6 /* TasklyLogo.swift */,
+				A227AC088CC53C046AFBF7BF /* WebView.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -176,6 +201,8 @@
 			isa = PBXGroup;
 			children = (
 				F90F68A2E69611E989F1B27C /* LoginView.swift */,
+				B0E26F637C1E62A7378283B5 /* PrivacyConsentView.swift */,
+				6C99BACCD2C7CC8C6C305FBF /* SignInPromptView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -205,6 +232,14 @@
 				3B94C9650F6320A12312763E /* TasklyApp.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		A2378BC976D144528F8C01A1 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				80EEE6CB1756C192BC6D6503 /* Assets.xcassets */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		AA1449C9CC0AD8A4262DA4C6 /* Views */ = {
@@ -265,6 +300,7 @@
 			buildConfigurationList = 2E7876B34897004B96FAB7B2 /* Build configuration list for PBXNativeTarget "Taskly" */;
 			buildPhases = (
 				B752D4938B7E5D985BF22E0A /* Sources */,
+				7C4AD5B82DB0167EF68DDE44 /* Resources */,
 				A427391AEBC73F88E473DD8B /* Frameworks */,
 			);
 			buildRules = (
@@ -292,6 +328,7 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					69C69AC21BD2A814D314B899 = {
+						DevelopmentTeam = K65RWCXUXM;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -320,35 +357,54 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		7C4AD5B82DB0167EF68DDE44 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA44AD2F8E602BF62A1CDE20 /* Assets.xcassets in Resources */,
+				D95E599705D7438714E38571 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		B752D4938B7E5D985BF22E0A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C61ABAA468CB0BA54ECD2F86 /* Analytics.swift in Sources */,
 				AD99DC1194BDEF9A519637D0 /* AppRouter.swift in Sources */,
 				16CCBAA92C5D6BFB940BC1F8 /* ApplyView.swift in Sources */,
 				53BB2695E0315FBB2F33BA42 /* AuthManager.swift in Sources */,
 				0515B841895097E8248FF8D8 /* ChatView.swift in Sources */,
+				242622F1993EAA58B276B013 /* DesignSystem.swift in Sources */,
 				4471911A46557920CC3E2FE6 /* LoginView.swift in Sources */,
 				B5718B7DE007FD353B2046E7 /* MainTabView.swift in Sources */,
 				AB1960588087D5C0303F44AF /* MessagesView.swift in Sources */,
 				8468011433D81CBD1F6D4728 /* Models.swift in Sources */,
+				18A5FAE3D676374D1198A94A /* ModerationSheet.swift in Sources */,
 				D5D37543E05BE7B7258797DD /* NetworkManager.swift in Sources */,
 				C66FCE72E7D1F3519E68D6FB /* PaymentView.swift in Sources */,
 				41FDC3FC6184D8EEC41313D0 /* PostServiceView.swift in Sources */,
 				2B67C3F153C1900E84F2D998 /* PostTaskView.swift in Sources */,
+				817F88CBC912DB191E59D8F7 /* PrivacyConsentView.swift in Sources */,
 				BC62B09E97CDE87B82AF17BE /* ProfileView.swift in Sources */,
 				A2F81897F4B03554C8F26AC8 /* ReviewView.swift in Sources */,
 				E9CB2AC161B0E5F7740A38F6 /* RootView.swift in Sources */,
 				ACFA8C38D575E81525AAD3AD /* ServiceCardView.swift in Sources */,
+				EF3F0EF494D8FFE68AAB195F /* SignInPromptView.swift in Sources */,
 				A7B45C3804360F6EC1C0E105 /* SubmitCompletionView.swift in Sources */,
 				4EA2236E0426AF1D86F33990 /* TaskBoardView.swift in Sources */,
 				5D5463753B8D64D7FCD082F9 /* TaskBoardViewModel.swift in Sources */,
 				7D4ECDE42B04C5412F51AB27 /* TaskCardView.swift in Sources */,
 				42EB1BCF3980C7D2B5DF5EA4 /* TaskDetailView.swift in Sources */,
 				60EA8C6F0FD45EF636DAC43F /* TasklyApp.swift in Sources */,
+				1B741B79176A6B587BC7FF2F /* TasklyLogo.swift in Sources */,
 				5175DCFBC98CD7492AB93FFB /* VerificationView.swift in Sources */,
 				5BF5108907B8318675953F78 /* WalletView.swift in Sources */,
+				1F9993D0ABEB24AA5042ACAD /* WebView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -390,7 +446,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 6;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = K65RWCXUXM;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -451,7 +507,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 6;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = K65RWCXUXM;
 				ENABLE_PREVIEWS = YES;
@@ -488,17 +544,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = Sources/Taskly/Taskly.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = K65RWCXUXM;
+				CURRENT_PROJECT_VERSION = 6;
 				INFOPLIST_FILE = Sources/Taskly/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.taskly.app;
+				PRODUCT_BUNDLE_IDENTIFIER = taskly.cnirv.com;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -506,17 +563,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = Sources/Taskly/Taskly.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = K65RWCXUXM;
+				CURRENT_PROJECT_VERSION = 6;
 				INFOPLIST_FILE = Sources/Taskly/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.taskly.app;
+				PRODUCT_BUNDLE_IDENTIFIER = taskly.cnirv.com;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};

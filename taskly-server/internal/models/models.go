@@ -3,7 +3,6 @@ package models
 import (
 	"time"
 
-	"github.com/lib/pq"
 )
 
 // ─── User ────────────────────────────────────────────────────────────────────
@@ -11,17 +10,24 @@ import (
 type User struct {
 	BaseModel
 	Nickname           string         `gorm:"size:100;not null" json:"nickname"`
-	Email              string         `gorm:"size:255;uniqueIndex" json:"email,omitempty"`
+	// MySQL has no partial unique indexes, and a plain unique index would treat
+	// every empty string ("") as a collision — so the 2nd email-only user (blank
+	// apple_user_id) or apple-only user (blank email) would fail to insert.
+	// Uniqueness is therefore enforced at the application layer (Register checks the
+	// email already exists; AppleLogin looks up by apple_user_id); these are plain
+	// non-unique indexes purely for lookup speed.
+	Email              string         `gorm:"size:255;index" json:"email,omitempty"`
 	PasswordHash       string         `gorm:"size:255" json:"-"`
 	Avatar             string         `gorm:"size:500" json:"avatar,omitempty"`
 	Bio                string         `gorm:"size:500" json:"bio,omitempty"`
-	SkillTags          pq.StringArray `gorm:"type:text[]" json:"skill_tags"`
+	SkillTags          StringArray `gorm:"type:json" json:"skill_tags"`
 	Rating             float64        `gorm:"default:0" json:"rating"`
 	CompletedCount     int            `gorm:"default:0" json:"completed_count"`
 	IsVerified         bool           `gorm:"default:false" json:"is_verified"`
 	VerificationStatus string         `gorm:"size:20;default:'none'" json:"verification_status"` // none|pending|approved|rejected
-	AppleUserID        string         `gorm:"size:255;uniqueIndex" json:"-"`
+	AppleUserID        string         `gorm:"size:255;index" json:"-"` // uniqueness enforced in AppleLogin handler
 	DeviceToken        string         `gorm:"size:500" json:"-"`
+	IsAdmin            bool           `gorm:"default:false" json:"-"` // gates /v1/admin/*; flipped manually in the DB
 }
 
 // ─── Task ────────────────────────────────────────────────────────────────────
@@ -42,7 +48,7 @@ type Task struct {
 	Publisher      *User          `gorm:"foreignKey:PublisherID" json:"publisher,omitempty"`
 	AssigneeID     *uint          `gorm:"index" json:"assignee_id,omitempty"`
 	Assignee       *User          `gorm:"foreignKey:AssigneeID" json:"assignee,omitempty"`
-	Images         pq.StringArray `gorm:"type:text[]" json:"images"`
+	Images         StringArray `gorm:"type:json" json:"images"`
 	ApplicantCount int            `gorm:"-" json:"applicant_count"`
 }
 
@@ -57,8 +63,8 @@ type ServiceCard struct {
 	MaxPrice    float64        `gorm:"type:decimal(10,2)" json:"max_price"`
 	Currency    string         `gorm:"size:3;default:'USD'" json:"currency"`
 	ServiceArea string         `gorm:"size:200" json:"service_area"`
-	SkillTags   pq.StringArray `gorm:"type:text[]" json:"skill_tags"`
-	Images      pq.StringArray `gorm:"type:text[]" json:"images"`
+	SkillTags   StringArray `gorm:"type:json" json:"skill_tags"`
+	Images      StringArray `gorm:"type:json" json:"images"`
 	ProviderID  uint           `gorm:"not null;index" json:"provider_id"`
 	Provider    *User          `gorm:"foreignKey:ProviderID" json:"provider,omitempty"`
 	IsActive    bool           `gorm:"default:true" json:"is_active"`
@@ -114,7 +120,7 @@ type Review struct {
 	RevieweeID uint           `gorm:"not null;index" json:"reviewee_id"`
 	Rating     int            `gorm:"not null" json:"rating"`
 	Comment    string         `gorm:"type:text" json:"comment"`
-	Images     pq.StringArray `gorm:"type:text[]" json:"images"`
+	Images     StringArray `gorm:"type:json" json:"images"`
 }
 
 // ─── Verification ─────────────────────────────────────────────────────────────
@@ -142,6 +148,19 @@ type Report struct {
 	Status     string `gorm:"size:20;default:'pending'" json:"status"` // pending|reviewed|dismissed
 }
 
+// ─── Block ───────────────────────────────────────────────────────────────────
+//
+// One row per (blocker → blocked) pair. Blocking is one-directional in intent but
+// the feed/message filters hide content in BOTH directions, so a blocked user also
+// stops seeing the blocker (App Store Guideline 1.2: content must be removed from
+// the user's feed instantly). Creating a block also files a Report so the developer
+// is notified of the objectionable content/behaviour.
+type Block struct {
+	BaseModel
+	BlockerID uint `gorm:"not null;index:idx_blocker_blocked,unique" json:"blocker_id"`
+	BlockedID uint `gorm:"not null;index:idx_blocker_blocked,unique" json:"blocked_id"`
+}
+
 // ─── WalletTransaction ────────────────────────────────────────────────────────
 
 type WalletTransaction struct {
@@ -152,4 +171,38 @@ type WalletTransaction struct {
 	Currency    string  `gorm:"size:3;default:'USD'" json:"currency"`
 	Description string  `gorm:"size:500" json:"description"`
 	RefID       *uint   `gorm:"index" json:"ref_id,omitempty"`
+}
+
+// ─── EmailCode ───────────────────────────────────────────────────────────────
+//
+// One row per email; the latest verification code for registration. We upsert on
+// email so an address only ever has its newest code. Attempts caps brute-forcing.
+type EmailCode struct {
+	ID        uint      `gorm:"primarykey" json:"id"`
+	Email     string    `gorm:"size:255;uniqueIndex" json:"email"`
+	Code      string    `gorm:"size:6" json:"-"`
+	ExpiresAt time.Time `json:"expires_at"`
+	Attempts  int       `gorm:"default:0" json:"-"`
+	CreatedAt time.Time `json:"created_at"` // also used for the 60s resend cooldown
+	UpdatedAt time.Time `json:"-"`
+}
+
+// ─── Analytics ───────────────────────────────────────────────────────────────
+//
+// One row per client event. Kept deliberately flat and append-only (no soft
+// delete) so DAU / retention can be computed with simple group-bys. Identity for
+// those metrics is COALESCE(user_id, anon_id): anon_id (a per-install UUID) keeps
+// pre-login app_opens countable, and ties them to the user once they sign in.
+type AnalyticsEvent struct {
+	ID         uint      `gorm:"primarykey" json:"id"`
+	CreatedAt  time.Time `gorm:"index" json:"created_at"`          // server receive time
+	UserID     *uint     `gorm:"index" json:"user_id,omitempty"`   // null when logged out
+	AnonID     string    `gorm:"size:64;index" json:"anon_id"`     // per-install id
+	SessionID  string    `gorm:"size:64;index" json:"session_id"`
+	Event      string    `gorm:"size:64;index" json:"event"`       // e.g. app_open, login, post_task
+	Props      string    `gorm:"type:json" json:"props"`           // arbitrary JSON
+	Platform   string    `gorm:"size:16" json:"platform"`
+	AppVersion string    `gorm:"size:16" json:"app_version"`
+	ClientTS   time.Time `json:"client_ts"`
+	EventDate  string    `gorm:"size:10;index" json:"event_date"`  // YYYY-MM-DD for DAU/retention
 }

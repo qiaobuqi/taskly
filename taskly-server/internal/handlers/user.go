@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"taskly-server/internal/database"
@@ -8,7 +9,11 @@ import (
 	"taskly-server/internal/models"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
+
+var errInsufficientBalance = errors.New("insufficient balance")
 
 type UserHandler struct{}
 
@@ -23,6 +28,19 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, models.OK(user))
+}
+
+// DELETE /v1/users/me — account deletion (App Store Guideline 5.1.1(v) requires
+// apps that create accounts to let users delete theirs in-app). Soft-deletes the
+// user; their email frees up for re-registration (soft-deleted rows are excluded
+// from the uniqueness check).
+func (h *UserHandler) DeleteMe(c *gin.Context) {
+	uid := middleware.CurrentUserID(c)
+	if err := database.DB.Delete(&models.User{}, uid).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, models.Fail(500, "delete failed"))
+		return
+	}
+	c.JSON(http.StatusOK, models.OK(gin.H{"message": "account deleted"}))
 }
 
 // PUT /v1/users/me
@@ -175,13 +193,41 @@ func (h *UserHandler) Withdraw(c *gin.Context) {
 	if req.Currency == "" {
 		req.Currency = "USD"
 	}
-	tx := models.WalletTransaction{
-		UserID:      uid,
-		Type:        "withdrawal",
-		Amount:      req.Amount,
-		Currency:    req.Currency,
-		Description: "Withdrawal to: " + req.AccountInfo,
+
+	// Reject withdrawals exceeding the available balance (released funds minus prior
+	// withdrawals), so the wallet can never go negative. Check and insert run in one
+	// transaction holding a lock on the user row, so concurrent withdrawals serialize
+	// instead of both passing the balance check.
+	txErr := database.DB.Transaction(func(tx *gorm.DB) error {
+		var u models.User
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&u, uid).Error; err != nil {
+			return err
+		}
+		var credited, withdrawn float64
+		tx.Model(&models.WalletTransaction{}).
+			Where("user_id = ? AND type IN ('release','refund')", uid).
+			Select("COALESCE(SUM(amount), 0)").Scan(&credited)
+		tx.Model(&models.WalletTransaction{}).
+			Where("user_id = ? AND type = 'withdrawal'", uid).
+			Select("COALESCE(SUM(amount), 0)").Scan(&withdrawn)
+		if req.Amount > credited-withdrawn {
+			return errInsufficientBalance
+		}
+		return tx.Create(&models.WalletTransaction{
+			UserID:      uid,
+			Type:        "withdrawal",
+			Amount:      req.Amount,
+			Currency:    req.Currency,
+			Description: "Withdrawal to: " + req.AccountInfo,
+		}).Error
+	})
+	if txErr == errInsufficientBalance {
+		c.JSON(http.StatusBadRequest, models.Fail(400, "insufficient balance"))
+		return
 	}
-	database.DB.Create(&tx)
+	if txErr != nil {
+		c.JSON(http.StatusInternalServerError, models.Fail(500, "withdrawal failed"))
+		return
+	}
 	c.JSON(http.StatusOK, models.OK(gin.H{"message": "withdrawal requested"}))
 }

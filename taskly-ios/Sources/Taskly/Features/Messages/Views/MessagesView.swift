@@ -1,12 +1,15 @@
 import SwiftUI
 
 struct MessagesView: View {
+    @EnvironmentObject private var authManager: AuthManager
     @StateObject private var vm = MessagesViewModel()
 
     var body: some View {
         NavigationStack {
             Group {
-                if vm.conversations.isEmpty && !vm.isLoading {
+                if !authManager.isLoggedIn {
+                    SignInPromptView(message: "Sign in to see your messages")
+                } else if vm.conversations.isEmpty && !vm.isLoading {
                     ContentUnavailableView(
                         "No Messages",
                         systemImage: "bubble.left.and.bubble.right",
@@ -25,9 +28,14 @@ struct MessagesView: View {
                 }
             }
             .navigationTitle("Messages")
-            .task { await vm.loadConversations() }
+            // Keyed on login state: skips the request entirely for guests (no
+            // spinner over the sign-in prompt) and reloads right after login.
+            .task(id: authManager.isLoggedIn) {
+                guard authManager.isLoggedIn else { return }
+                await vm.loadConversations()
+            }
             .overlay {
-                if vm.isLoading && vm.conversations.isEmpty {
+                if authManager.isLoggedIn && vm.isLoading && vm.conversations.isEmpty {
                     ProgressView()
                 }
             }

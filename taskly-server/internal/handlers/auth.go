@@ -1,24 +1,78 @@
 package handlers
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"net/http"
 	"strings"
+	"time"
 
 	"taskly-server/internal/database"
 	"taskly-server/internal/models"
+	"taskly-server/internal/services"
 	"taskly-server/internal/utils"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
+
+// errHandled rolls a transaction back when the handler has already chosen the
+// HTTP error to send — it never reaches the client.
+var errHandled = errors.New("handled")
 
 type AuthHandler struct{}
 
 func NewAuthHandler() *AuthHandler { return &AuthHandler{} }
+
+// POST /v1/auth/send-code — email a 6-digit registration code (rate-limited 60s/email).
+func (h *AuthHandler) SendCode(c *gin.Context) {
+	var req struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.Fail(400, err.Error()))
+		return
+	}
+	req.Email = strings.ToLower(strings.TrimSpace(req.Email))
+
+	var existing int64
+	database.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&existing)
+	if existing > 0 {
+		c.JSON(http.StatusConflict, models.Fail(409, "email already registered"))
+		return
+	}
+
+	// 60-second resend cooldown.
+	var prev models.EmailCode
+	if database.DB.Where("email = ?", req.Email).First(&prev).Error == nil {
+		if time.Since(prev.UpdatedAt) < 60*time.Second {
+			c.JSON(http.StatusTooManyRequests, models.Fail(429, "please wait before requesting another code"))
+			return
+		}
+	}
+
+	code := genCode()
+	rec := models.EmailCode{Email: req.Email, Code: code, ExpiresAt: time.Now().Add(5 * time.Minute), Attempts: 0}
+	// Upsert: keep one row per email with the newest code.
+	database.DB.Where("email = ?", req.Email).Assign(map[string]interface{}{
+		"code": code, "expires_at": rec.ExpiresAt, "attempts": 0,
+	}).FirstOrCreate(&rec)
+
+	_ = services.SendVerificationCode(req.Email, code)
+	c.JSON(http.StatusOK, models.OK(gin.H{"message": "code sent"}))
+}
+
+func genCode() string {
+	n, _ := rand.Int(rand.Reader, big.NewInt(1000000))
+	return fmt.Sprintf("%06d", n.Int64())
+}
 
 // POST /v1/auth/register
 func (h *AuthHandler) Register(c *gin.Context) {
@@ -26,18 +80,13 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		Email    string `json:"email" binding:"required,email"`
 		Password string `json:"password" binding:"required,min=8"`
 		Nickname string `json:"nickname" binding:"required"`
+		Code     string `json:"code" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, models.Fail(400, err.Error()))
 		return
 	}
-
-	var count int64
-	database.DB.Model(&models.User{}).Where("email = ?", req.Email).Count(&count)
-	if count > 0 {
-		c.JSON(http.StatusConflict, models.Fail(409, "email already registered"))
-		return
-	}
+	req.Email = strings.ToLower(strings.TrimSpace(req.Email))
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -51,8 +100,55 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		Nickname:     req.Nickname,
 		SkillTags:    []string{},
 	}
-	if err := database.DB.Create(&user).Error; err != nil {
+
+	// users.email has no unique index (soft-deleted emails must stay re-registrable,
+	// and MySQL lacks partial indexes), so duplicate prevention is the Count check
+	// below. To keep two concurrent registrations from both passing it, the whole
+	// check-and-create runs in one transaction that locks this email's email_codes
+	// row (unique per email) — the second request blocks on the lock, then sees the
+	// first one's user row / consumed code and fails cleanly.
+	status, msg := 0, ""
+	txErr := database.DB.Transaction(func(tx *gorm.DB) error {
+		var ec models.EmailCode
+		if tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			Where("email = ?", req.Email).First(&ec).Error != nil {
+			status, msg = http.StatusBadRequest, "please request a verification code first"
+			return errHandled
+		}
+
+		var count int64
+		tx.Model(&models.User{}).Where("email = ?", req.Email).Count(&count)
+		if count > 0 {
+			status, msg = http.StatusConflict, "email already registered"
+			return errHandled
+		}
+
+		// Verify the code: must be unexpired, under the attempt cap, and match.
+		if time.Now().After(ec.ExpiresAt) {
+			status, msg = http.StatusBadRequest, "verification code expired"
+			return errHandled
+		}
+		if ec.Attempts >= 5 {
+			status, msg = http.StatusBadRequest, "too many attempts, request a new code"
+			return errHandled
+		}
+		if ec.Code != req.Code {
+			tx.Model(&ec).Update("attempts", ec.Attempts+1)
+			status, msg = http.StatusBadRequest, "invalid verification code"
+			return nil // commit the attempts increment, respond with the error below
+		}
+
+		if err := tx.Create(&user).Error; err != nil {
+			return err
+		}
+		return tx.Where("email = ?", req.Email).Delete(&models.EmailCode{}).Error // consume the code
+	})
+	if txErr != nil && txErr != errHandled {
 		c.JSON(http.StatusInternalServerError, models.Fail(500, "create user failed"))
+		return
+	}
+	if msg != "" {
+		c.JSON(status, models.Fail(status, msg))
 		return
 	}
 

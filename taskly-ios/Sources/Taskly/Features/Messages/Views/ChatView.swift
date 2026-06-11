@@ -4,8 +4,10 @@ struct ChatView: View {
     let otherUser: User
     let taskId: Int?
     @EnvironmentObject var authManager: AuthManager
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var vm: ChatViewModel
     @State private var inputText = ""
+    @State private var showModeration = false
 
     init(otherUser: User, taskId: Int?) {
         self.otherUser = otherUser
@@ -65,12 +67,29 @@ struct ChatView: View {
         }
         .navigationTitle(otherUser.nickname)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showModeration = true } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+            }
+        }
+        .sheet(isPresented: $showModeration) {
+            ModerationSheet(
+                subject: "user",
+                onReport: { await vm.report() },
+                onBlock: {
+                    await vm.blockUser()
+                    dismiss()
+                }
+            )
+        }
         .task { await vm.loadMessages() }
     }
 }
 
 struct MessageBubble: View {
-    let message: Message
+    let message: ChatMessage
     let isFromMe: Bool
 
     var body: some View {
@@ -90,7 +109,7 @@ struct MessageBubble: View {
 
 @MainActor
 final class ChatViewModel: ObservableObject {
-    @Published var messages: [Message] = []
+    @Published var messages: [ChatMessage] = []
     @Published var isLoading = false
 
     private let otherUserId: Int
@@ -102,7 +121,7 @@ final class ChatViewModel: ObservableObject {
     func loadMessages() async {
         isLoading = true
         do {
-            let msgs: [Message] = try await NetworkManager.shared.request(
+            let msgs: [ChatMessage] = try await NetworkManager.shared.request(
                 "/messages/\(otherUserId)"
             )
             messages = msgs
@@ -119,7 +138,7 @@ final class ChatViewModel: ObservableObject {
                 let content: String
                 let taskId: Int?
             }
-            let msg: Message = try await NetworkManager.shared.requestJSON(
+            let msg: ChatMessage = try await NetworkManager.shared.requestJSON(
                 "/messages",
                 body: SendBody(receiverId: otherUserId, content: content, taskId: taskId)
             )
@@ -127,5 +146,29 @@ final class ChatViewModel: ObservableObject {
         } catch {
             print("Failed to send message: \(error)")
         }
+    }
+
+    /// Report this user to the moderation queue (reviewed within 24h).
+    func report() async {
+        do {
+            struct ReportBody: Encodable { let targetType, reason: String; let targetId: Int }
+            let _: EmptyResponse = try await NetworkManager.shared.requestJSON(
+                "/reports",
+                body: ReportBody(targetType: "user", reason: "inappropriate", targetId: otherUserId)
+            )
+        } catch { print("Report failed: \(error)") }
+    }
+
+    /// Block this user: notifies the developer and removes their content from the
+    /// feed immediately (App Store Guideline 1.2).
+    func blockUser() async {
+        do {
+            struct BlockBody: Encodable { let blockedId: Int; let reason: String }
+            let _: EmptyResponse = try await NetworkManager.shared.requestJSON(
+                "/blocks",
+                body: BlockBody(blockedId: otherUserId, reason: "blocked from chat")
+            )
+            NotificationCenter.default.post(name: .tasksDidChange, object: nil)
+        } catch { print("Block failed: \(error)") }
     }
 }

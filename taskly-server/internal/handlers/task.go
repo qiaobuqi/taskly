@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"taskly-server/internal/database"
 	"taskly-server/internal/middleware"
@@ -26,6 +27,11 @@ func (h *TaskHandler) List(c *gin.Context) {
 		Preload("Publisher")
 	if category != "" {
 		q = q.Where("category = ?", category)
+	}
+	// Hide tasks from users the viewer has blocked (or who blocked them) so
+	// objectionable content disappears from the feed instantly (Guideline 1.2).
+	if blocked := BlockedUserIDs(middleware.CurrentUserID(c)); len(blocked) > 0 {
+		q = q.Where("publisher_id NOT IN ?", blocked)
 	}
 	switch sort {
 	case "price_low":
@@ -85,6 +91,11 @@ func (h *TaskHandler) Create(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, models.Fail(400, err.Error()))
 		return
 	}
+	// Filter objectionable user-generated content (App Store Guideline 1.2).
+	if ContainsObjectionableContent(req.Title) || ContainsObjectionableContent(req.Description) {
+		c.JSON(http.StatusBadRequest, models.Fail(400, "Your task contains language that violates our content policy. Please revise it."))
+		return
+	}
 	if req.Currency == "" {
 		req.Currency = "USD"
 	}
@@ -103,6 +114,14 @@ func (h *TaskHandler) Create(c *gin.Context) {
 	}
 	if req.Images == nil {
 		task.Images = []string{}
+	}
+	if req.Deadline != nil && *req.Deadline != "" {
+		t, err := time.Parse(time.RFC3339, *req.Deadline)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, models.Fail(400, "invalid deadline format, expected RFC3339"))
+			return
+		}
+		task.Deadline = &t
 	}
 	database.DB.Create(&task)
 	database.DB.Preload("Publisher").First(&task, task.ID)
@@ -134,13 +153,9 @@ func (h *TaskHandler) Apply(c *gin.Context) {
 	uid := middleware.CurrentUserID(c)
 	taskID := c.Param("id")
 
-	// Must be verified to apply
-	var user models.User
-	database.DB.First(&user, uid)
-	if user.VerificationStatus != "approved" {
-		c.JSON(http.StatusForbidden, models.Fail(403, "identity verification required to apply"))
-		return
-	}
+	// NOTE: identity verification is intentionally NOT required to apply for now
+	// (product decision — skip 实名 until later). Re-add a verification gate here
+	// when KYC is reintroduced.
 
 	var task models.Task
 	if database.DB.First(&task, taskID).Error != nil {

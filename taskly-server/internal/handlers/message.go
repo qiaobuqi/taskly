@@ -90,8 +90,17 @@ func (h *MessageHandler) GetConversations(c *gin.Context) {
 		  AND deleted_at IS NULL
 	`, uid, uid, uid).Scan(&rows)
 
+	// Hide conversations with blocked users from the list instantly (Guideline 1.2).
+	blocked := make(map[uint]struct{})
+	for _, id := range BlockedUserIDs(uid) {
+		blocked[id] = struct{}{}
+	}
+
 	var users []models.User
 	for _, row := range rows {
+		if _, isBlocked := blocked[row.OtherID]; isBlocked {
+			continue
+		}
 		var u models.User
 		if database.DB.First(&u, row.OtherID).Error == nil {
 			users = append(users, u)
@@ -136,6 +145,18 @@ func (h *MessageHandler) Send(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, models.Fail(400, err.Error()))
 		return
+	}
+	// Filter objectionable content in chat (App Store Guideline 1.2).
+	if ContainsObjectionableContent(req.Content) {
+		c.JSON(http.StatusBadRequest, models.Fail(400, "Your message contains language that violates our content policy."))
+		return
+	}
+	// Don't deliver messages to/from a blocked user.
+	for _, id := range BlockedUserIDs(uid) {
+		if id == req.ReceiverID {
+			c.JSON(http.StatusForbidden, models.Fail(403, "You can no longer message this user."))
+			return
+		}
 	}
 	msg := models.Message{
 		SenderID:   uid,

@@ -1,0 +1,48 @@
+Taskly is a local task & services marketplace (similar to Airtasker).
+
+DEMO ACCOUNT
+  Email:    appreview@taskly.app
+  Password: Review2026!
+
+GUEST BROWSING
+  Login is optional. You can tap "Skip" on the sign-in screen to browse
+  tasks without an account. Posting a task, applying for a task, messaging,
+  and the profile/wallet tabs prompt sign-in (Guideline 5.1.1 — login is
+  only required for account-specific features).
+
+PAYMENTS (test mode)
+  Payments are processed by Stripe in TEST mode for this review build.
+  Use Stripe test card:
+     Card number: 4242 4242 4242 4242
+     Expiry:      any future date (e.g. 12/30)
+     CVC:         any 3 digits (e.g. 123)
+     ZIP:         any (e.g. 2000)
+  Funds are held in escrow and released to the worker when the poster
+  confirms completion. This is payment for real-world services performed
+  off-app, so it is out of scope for In-App Purchase (Guideline 3.1.3(e)/3.1.5).
+
+ACCOUNT DELETION
+  Settings (gear icon, top-right of Profile) -> Delete Account.
+
+UGC MODERATION (Guideline 1.2) — all precautions implemented in this build:
+  - BLOCK a user: open any chat (Messages tab) or task detail -> tap the
+    "..." button (top-right) -> "Block this user". Blocking removes that
+    user's tasks and messages from your feed instantly, and automatically
+    files a report that notifies us.
+  - REPORT: same "..." menu -> "Report this user" / "Report this task".
+    We review all reports within 24 hours, remove offending content and
+    eject the offending user.
+  - FILTERING: task titles/descriptions and chat messages are filtered
+    server-side for objectionable language at submission time.
+  A screen recording of the block mechanism (captured on a physical
+  device) is attached to this submission.
+
+ADD A PHOTO (Guideline 2.3): on the task board tap "+" -> "Post a Task" ->
+  "Photos" section -> "Add a Photo" (up to 6 photos can be attached).
+
+SIGN IN WITH APPLE (Guideline 2.1): fixed in this build — the missing
+  Sign in with Apple entitlement was added; the button now opens the
+  system Apple ID flow on all devices.
+
+There are several sample tasks pre-seeded so the board is populated, and
+the demo account has several active chat conversations.

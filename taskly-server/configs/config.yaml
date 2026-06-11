@@ -3,18 +3,22 @@ server:
   mode: debug
 
 database:
-  host: localhost
-  port: 5432
-  user: postgres
-  password: ""
-  name: taskly_dev
-  sslmode: disable
+  driver: mysql
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: "123456"   # local dev MySQL; override per environment
+  name: taskly
+  charset: utf8mb4
 
 jwt:
   secret: "change-me-in-production"
   expire_hours: 720  # 30 days
 
 stripe:
+  # Placeholders only. Real keys live ONLY in the server's config.prod.yaml (never in git).
+  # The Stripe test key is IP-restricted to the prod server, so local would fail anyway —
+  # debug/test on the server, not locally.
   secret_key: "sk_test_..."
   publishable_key: "pk_test_..."
   webhook_secret: "whsec_..."
@@ -32,3 +36,12 @@ upload:
 
 commission:
   rate: 0.0   # 0% early stage; change to 0.10 when ready
+
+directmail:
+  # Aliyun DirectMail (邮件推送). When account_name is unverified/placeholder the
+  # server logs the code to the console instead of emailing (handy for local dev).
+  access_key_id: ""
+  access_key_secret: ""
+  account_name: "REPLACE_no-reply@cnirv.com"
+  from_alias: "Tasket"
+  region: "cn-hangzhou"

@@ -34,7 +34,7 @@ struct WalletView: View {
                                     Text("Withdraw")
                                         .fontWeight(.semibold)
                                         .frame(width: 160).frame(height: 44)
-                                        .background(.blue).foregroundStyle(.white)
+                                        .background(Color.brand).foregroundStyle(.white)
                                         .clipShape(RoundedRectangle(cornerRadius: 12))
                                 }
                                 .disabled(wallet.balance <= 0)

@@ -1,9 +1,18 @@
 import SwiftUI
 
+extension Notification.Name {
+    /// Posted after a task/service is created so open boards refresh immediately,
+    /// instead of the user having to switch tabs to see their new post.
+    static let tasksDidChange = Notification.Name("tasksDidChange")
+}
+
 struct TaskBoardView: View {
+    @EnvironmentObject private var router: AppRouter
+    @EnvironmentObject private var authManager: AuthManager
     @StateObject private var vm = TaskBoardViewModel()
     @State private var selectedTask: TaskItem?
     @State private var selectedService: ServiceCard?
+    @State private var showPostChooser = false
 
     var body: some View {
         NavigationStack {
@@ -39,8 +48,8 @@ struct TaskBoardView: View {
                 // Sort bar
                 HStack {
                     Text(vm.boardMode == .tasks
-                         ? "\(vm.tasks.count) tasks"
-                         : "\(vm.services.count) services")
+                         ? "\(vm.tasks.count) task\(vm.tasks.count == 1 ? "" : "s")"
+                         : "\(vm.services.count) service\(vm.services.count == 1 ? "" : "s")")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Spacer()
@@ -67,10 +76,44 @@ struct TaskBoardView: View {
                     serviceList
                 }
             }
+            .background(Color.appBackground.ignoresSafeArea())
+            .overlay(alignment: .bottomTrailing) {
+                // Floating "create" button — the mainstream place for a primary
+                // create action (Airtasker / Gmail), instead of a middle tab.
+                Button {
+                    Analytics.shared.track("post_tapped")
+                    // Posting requires an account — prompt login for guests.
+                    if authManager.isLoggedIn { showPostChooser = true } else { router.showLogin = true }
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 26, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 60, height: 60)
+                        .background(Color.brand, in: Circle())
+                        .shadow(color: .brand.opacity(0.45), radius: 12, y: 6)
+                }
+                .padding(.trailing, Space.lg)
+                .padding(.bottom, Space.lg)
+                .accessibilityLabel("Post a task or service")
+            }
+            .confirmationDialog("What do you want to post?", isPresented: $showPostChooser, titleVisibility: .visible) {
+                Button("Post a Task") {
+                    Analytics.shared.track("post_choose", ["type": "task"])
+                    router.showPostTask = true
+                }
+                Button("Offer a Service") {
+                    Analytics.shared.track("post_choose", ["type": "service"])
+                    router.showPostService = true
+                }
+                Button("Cancel", role: .cancel) {}
+            }
             .navigationTitle("Taskly")
             .navigationBarTitleDisplayMode(.large)
             .task { await vm.load() }
             .onChange(of: vm.boardMode) { _, _ in Task { await vm.load() } }
+            .onReceive(NotificationCenter.default.publisher(for: .tasksDidChange)) { _ in
+                Task { await vm.load() }
+            }
             .navigationDestination(item: $selectedTask) { TaskDetailView(task: $0) }
             .navigationDestination(item: $selectedService) { ServiceCardDetailView(service: $0) }
         }
@@ -82,12 +125,19 @@ struct TaskBoardView: View {
                 ContentUnavailableView("No tasks yet", systemImage: "list.bullet.clipboard")
             } else {
                 List(vm.tasks) { task in
-                    TaskCardView(task: task)
-                        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                        .listRowSeparator(.hidden)
-                        .onTapGesture { selectedTask = task }
+                    // A Button (not .onTapGesture) is used here on purpose: inside a
+                    // List, row tap handling swallows a bare .onTapGesture, so cards
+                    // appeared dead and never navigated. Button taps register reliably.
+                    Button { selectedTask = task } label: {
+                        TaskCardView(task: task)
+                    }
+                    .buttonStyle(.plain)
+                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
                 }
                 .listStyle(.plain)
+                .scrollContentBackground(.hidden)
                 .refreshable { await vm.load() }
             }
         }
@@ -99,12 +149,16 @@ struct TaskBoardView: View {
                 ContentUnavailableView("No services yet", systemImage: "person.badge.shield.checkmark")
             } else {
                 List(vm.services) { service in
-                    ServiceCardView(service: service)
-                        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                        .listRowSeparator(.hidden)
-                        .onTapGesture { selectedService = service }
+                    Button { selectedService = service } label: {
+                        ServiceCardView(service: service)
+                    }
+                    .buttonStyle(.plain)
+                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
                 }
                 .listStyle(.plain)
+                .scrollContentBackground(.hidden)
                 .refreshable { await vm.load() }
             }
         }
@@ -123,9 +177,9 @@ struct CategoryChip: View {
                 if let icon { Image(systemName: icon).font(.caption) }
                 Text(title).font(.subheadline)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(isSelected ? Color.blue : Color(.systemGray6))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 7)
+            .background(isSelected ? Color.brand : Color(.tertiarySystemFill))
             .foregroundStyle(isSelected ? .white : .primary)
             .clipShape(Capsule())
         }

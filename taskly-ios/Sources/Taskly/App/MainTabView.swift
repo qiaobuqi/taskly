@@ -2,46 +2,29 @@ import SwiftUI
 
 struct MainTabView: View {
     @EnvironmentObject var router: AppRouter
-    @State private var showPostSheet = false
-    @State private var postMode: PostMode = .task
-
-    enum PostMode { case task, service }
 
     var body: some View {
+        // Three clean destinations. "Post" is no longer a tab — it's a floating
+        // action button on the Tasks screen (see TaskBoardView), which is the more
+        // mainstream pattern for a create action (Airtasker / Gmail style).
         TabView(selection: $router.selectedTab) {
             TaskBoardView()
                 .tabItem { Label("Tasks", systemImage: "list.bullet.clipboard") }
                 .tag(0)
 
-            Color.clear
-                .tabItem { Label("Post", systemImage: "plus.circle.fill") }
-                .tag(1)
-
             MessagesView()
                 .tabItem { Label("Messages", systemImage: "bubble.left.and.bubble.right") }
-                .tag(2)
+                .tag(1)
 
             ProfileView()
                 .tabItem { Label("Me", systemImage: "person.circle") }
-                .tag(3)
+                .tag(2)
         }
         .onChange(of: router.selectedTab) { _, tab in
-            if tab == 1 {
-                showPostSheet = true
-                router.selectedTab = 0
-            }
-        }
-        .confirmationDialog("What do you want to post?", isPresented: $showPostSheet) {
-            Button("Post a Task") {
-                postMode = .task
-                router.showPostTask = true
-            }
-            Button("Offer a Service") {
-                postMode = .service
-                router.showPostService = true
-            }
+            Analytics.shared.screen(["tasks", "messages", "profile"][tab])
         }
         .sheet(isPresented: $router.showPostTask) { PostTaskView() }
         .sheet(isPresented: $router.showPostService) { PostServiceView() }
+        .tint(.brand)   // green selected-tab + system controls, consistent with brand
     }
 }

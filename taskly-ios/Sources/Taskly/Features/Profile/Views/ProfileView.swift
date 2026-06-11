@@ -12,13 +12,15 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationStack {
+            if !authManager.isLoggedIn {
+                SignInPromptView(message: "Sign in to view your profile, tasks and wallet")
+                    .navigationTitle("Profile")
+            } else {
             ScrollView {
-                VStack(spacing: 0) {
+                VStack(spacing: Space.lg) {
                     if let user = authManager.currentUser {
                         profileHeader(user)
                     }
-
-                    Divider()
 
                     // Quick actions
                     HStack(spacing: 0) {
@@ -32,15 +34,15 @@ struct ProfileView: View {
                         Divider().frame(height: 40)
                         QuickActionButton(icon: "star", label: "Reviews") {}
                     }
-
-                    Divider()
+                    .cardSurface(padding: Space.sm)
+                    .padding(.horizontal, Space.lg)
 
                     Picker("", selection: $selectedTab) {
                         Text("My Tasks").tag(0)
                         Text("My Jobs").tag(1)
                     }
                     .pickerStyle(.segmented)
-                    .padding()
+                    .padding(.horizontal, Space.lg)
 
                     LazyVStack(spacing: 12) {
                         let items = selectedTab == 0 ? myTasks : myJobs
@@ -59,12 +61,14 @@ struct ProfileView: View {
                     .padding(.bottom, 20)
                 }
             }
+            .background(Color.appBackground.ignoresSafeArea())
             .navigationTitle("Profile")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showSettings = true } label: {
                         Image(systemName: "gearshape")
                     }
+                    .accessibilityLabel("Settings")
                 }
             }
             .task { await loadData() }
@@ -72,39 +76,65 @@ struct ProfileView: View {
             .sheet(isPresented: $showWallet) { WalletView() }
             .sheet(isPresented: $showVerification) { VerificationView() }
             .sheet(isPresented: $showSettings) { SettingsView() }
+            } // end else (logged in)
         }
     }
 
     @ViewBuilder
     private func profileHeader(_ user: User) -> some View {
-        VStack(spacing: 12) {
+        VStack(spacing: Space.md) {
             KFImage(URL(string: user.avatar ?? ""))
                 .placeholder {
-                    Circle().fill(Color(.systemGray5))
-                        .overlay(Image(systemName: "person.fill").font(.largeTitle).foregroundStyle(.gray))
+                    Circle().fill(.white.opacity(0.25))
+                        .overlay(Image(systemName: "person.fill").font(.largeTitle).foregroundStyle(.white))
                 }
                 .resizable().scaledToFill()
-                .frame(width: 80, height: 80).clipShape(Circle())
+                .frame(width: 88, height: 88).clipShape(Circle())
+                .overlay(Circle().stroke(.white.opacity(0.9), lineWidth: 3))
+                .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
 
             HStack(spacing: 6) {
                 Text(user.nickname).font(.title2.bold())
                 if user.isVerified {
-                    Image(systemName: "checkmark.seal.fill").foregroundStyle(.blue)
+                    Image(systemName: "checkmark.seal.fill")
                 }
             }
+            .foregroundStyle(.white)
 
             if let bio = user.bio {
-                Text(bio).font(.subheadline).foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center).padding(.horizontal)
+                Text(bio).font(.subheadline).foregroundStyle(.white.opacity(0.85))
+                    .multilineTextAlignment(.center)
             }
 
-            HStack(spacing: 32) {
-                StatView(value: "\(user.completedCount)", label: "Completed")
-                StatView(value: String(format: "%.1f", user.rating), label: "Rating")
-                StatView(value: user.skillTags.count > 0 ? "\(user.skillTags.count)" : "–", label: "Skills")
+            // Stats on a translucent strip for legibility over the gradient.
+            HStack(spacing: 0) {
+                headerStat("\(user.completedCount)", "Completed")
+                Divider().frame(height: 32).overlay(.white.opacity(0.3))
+                headerStat(String(format: "%.1f", user.rating), "Rating")
+                Divider().frame(height: 32).overlay(.white.opacity(0.3))
+                headerStat(user.skillTags.isEmpty ? "–" : "\(user.skillTags.count)", "Skills")
             }
+            .padding(.vertical, Space.md)
+            .background(.white.opacity(0.15))
+            .clipShape(RoundedRectangle(cornerRadius: Radius.md, style: .continuous))
+            .padding(.top, Space.xs)
         }
-        .padding()
+        .padding(Space.xl)
+        .frame(maxWidth: .infinity)
+        .background(Brand.gradient)
+        .clipShape(RoundedRectangle(cornerRadius: Radius.lg, style: .continuous))
+        .shadow(color: .brand.opacity(0.3), radius: 16, y: 8)
+        .padding(.horizontal, Space.lg)
+        .padding(.top, Space.sm)
+    }
+
+    private func headerStat(_ value: String, _ label: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value).font(.title3.bold())
+            Text(label).font(.caption)
+        }
+        .foregroundStyle(.white)
+        .frame(maxWidth: .infinity)
     }
 
     private func loadData() async {
@@ -126,7 +156,7 @@ struct QuickActionButton: View {
         Button(action: action) {
             VStack(spacing: 6) {
                 ZStack(alignment: .topTrailing) {
-                    Image(systemName: icon).font(.title2)
+                    Image(systemName: icon).font(.title2).foregroundStyle(Color.brand)
                     if let badge {
                         Text(badge)
                             .font(.caption2.bold()).foregroundStyle(.white)
@@ -156,6 +186,9 @@ struct StatView: View {
 struct SettingsView: View {
     @EnvironmentObject var authManager: AuthManager
     @Environment(\.dismiss) var dismiss
+    @State private var showDeleteConfirm = false
+    @State private var isDeleting = false
+    @State private var deleteError: String?
 
     var body: some View {
         NavigationStack {
@@ -164,9 +197,18 @@ struct SettingsView: View {
                     NavigationLink("Verification") { VerificationView() }
                     NavigationLink("Payment Methods") { Text("Payment Methods").padding() }
                 }
+                Section("Legal") {
+                    NavigationLink("Privacy Policy") {
+                        WebView(url: Legal.privacyURL).ignoresSafeArea(edges: .bottom)
+                            .navigationTitle("Privacy Policy").navigationBarTitleDisplayMode(.inline)
+                    }
+                    NavigationLink("Terms of Service") {
+                        WebView(url: Legal.termsURL).ignoresSafeArea(edges: .bottom)
+                            .navigationTitle("Terms of Service").navigationBarTitleDisplayMode(.inline)
+                    }
+                }
                 Section("Support") {
-                    Link("Help Center", destination: URL(string: "https://taskly.app/help")!)
-                    Link("Contact Us", destination: URL(string: "mailto:support@taskly.app")!)
+                    Link("Contact Us", destination: URL(string: "mailto:support@cnirv.com")!)
                 }
                 Section {
                     Button("Sign Out", role: .destructive) {
@@ -174,11 +216,49 @@ struct SettingsView: View {
                         dismiss()
                     }
                 }
+                // Account deletion is required by App Store Guideline 5.1.1(v) for any
+                // app that lets users create an account.
+                Section {
+                    Button(role: .destructive) {
+                        showDeleteConfirm = true
+                    } label: {
+                        if isDeleting { ProgressView() } else { Text("Delete Account") }
+                    }
+                    .disabled(isDeleting)
+                } footer: {
+                    Text("Permanently deletes your account and personal data.")
+                }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Done") { dismiss() } }
+            }
+            .alert("Delete Account?", isPresented: $showDeleteConfirm) {
+                Button("Cancel", role: .cancel) {}
+                Button("Delete", role: .destructive) {
+                    Task {
+                        isDeleting = true
+                        do {
+                            try await authManager.deleteAccount()
+                            dismiss()
+                        } catch {
+                            // Don't dismiss: the account still exists, so the user
+                            // must see that the deletion failed.
+                            deleteError = error.localizedDescription
+                        }
+                        isDeleting = false
+                    }
+                }
+            } message: {
+                Text("This permanently deletes your account and personal data. This cannot be undone.")
+            }
+            .alert("Couldn't Delete Account", isPresented: .init(
+                get: { deleteError != nil }, set: { if !$0 { deleteError = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(deleteError ?? "")
             }
         }
     }

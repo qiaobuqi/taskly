@@ -29,10 +29,10 @@ struct PaymentView: View {
 
                         VStack(spacing: 8) {
                             paymentRow(label: "Task", value: task.title)
-                            paymentRow(label: "Amount", value: "\(task.currency) \(task.budget, specifier: "%.2f")")
+                            paymentRow(label: "Amount", value: "\(task.currency) \(String(format: "%.2f", task.budget))")
                             paymentRow(label: "Commission", value: "Free (0%)")
                             Divider()
-                            paymentRow(label: "Total", value: "\(task.currency) \(task.budget, specifier: "%.2f")")
+                            paymentRow(label: "Total", value: "\(task.currency) \(String(format: "%.2f", task.budget))")
                                 .fontWeight(.bold)
                         }
                         .padding()

@@ -88,6 +88,8 @@ final class PostServiceViewModel: ObservableObject {
                 serviceArea: serviceArea, currency: "USD",
                 minPrice: minPrice, maxPrice: maxPrice, skillTags: tags
             ))
+            Analytics.shared.track("post_service_submit", ["category": category.rawValue])
+            NotificationCenter.default.post(name: .tasksDidChange, object: nil)
             return true
         } catch {
             errorMessage = error.localizedDescription

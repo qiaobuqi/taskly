@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"encoding/json"
+	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -16,6 +18,7 @@ import (
 	"github.com/stripe/stripe-go/v76"
 	"github.com/stripe/stripe-go/v76/paymentintent"
 	_ "github.com/stripe/stripe-go/v76/refund"
+	"github.com/stripe/stripe-go/v76/webhook"
 )
 
 type PaymentHandler struct{}
@@ -26,6 +29,13 @@ func NewPaymentHandler() *PaymentHandler {
 
 func initStripe() {
 	stripe.Key = config.Global.Stripe.SecretKey
+}
+
+func tail(s string, n int) string {
+	if len(s) <= n {
+		return s
+	}
+	return s[len(s)-n:]
 }
 
 // POST /v1/payments/create-intent
@@ -110,9 +120,29 @@ func (h *PaymentHandler) CreateIntent(c *gin.Context) {
 
 // POST /v1/payments/webhook  (Stripe webhook)
 func (h *PaymentHandler) Webhook(c *gin.Context) {
-	// In production: verify Stripe signature using config.Global.Stripe.WebhookSecret
+	payload, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.Fail(400, "cannot read body"))
+		return
+	}
+
+	// Verify the Stripe signature when a real webhook secret is configured; fall back
+	// to unverified parsing only in dev (placeholder secret) so local testing still works.
+	secret := config.Global.Stripe.WebhookSecret
 	var event stripe.Event
-	if err := c.ShouldBindJSON(&event); err != nil {
+	if secret != "" && !strings.HasPrefix(secret, "whsec_...") {
+		// IgnoreAPIVersionMismatch: the Stripe account's default API version is newer
+		// than what stripe-go v76 expects; we only read pi.ID/status, so the version
+		// difference is harmless and would otherwise (wrongly) fail verification.
+		event, err = webhook.ConstructEventWithOptions(payload, c.GetHeader("Stripe-Signature"), secret,
+			webhook.ConstructEventOptions{IgnoreAPIVersionMismatch: true})
+		if err != nil {
+			log.Printf("⚠️ webhook signature verify failed: %v | secret_tail=%s sig=%s bodylen=%d",
+				err, tail(secret, 6), tail(c.GetHeader("Stripe-Signature"), 24), len(payload))
+			c.JSON(http.StatusBadRequest, models.Fail(400, "invalid signature"))
+			return
+		}
+	} else if err := json.Unmarshal(payload, &event); err != nil {
 		c.JSON(http.StatusBadRequest, models.Fail(400, "invalid event"))
 		return
 	}
@@ -121,13 +151,12 @@ func (h *PaymentHandler) Webhook(c *gin.Context) {
 	case "payment_intent.succeeded":
 		var pi stripe.PaymentIntent
 		if err := json.Unmarshal(event.Data.Raw, &pi); err == nil {
-			database.DB.Model(&models.Payment{}).
-				Where("stripe_payment_intent_id = ?", pi.ID).
-				Update("status", "escrowed")
-			// Record wallet transaction for payer
+			// Idempotent: only escrow a still-pending payment, so Stripe's webhook
+			// retries can't create duplicate wallet transactions.
 			var payment models.Payment
-			database.DB.Where("stripe_payment_intent_id = ?", pi.ID).First(&payment)
-			if payment.ID > 0 {
+			if database.DB.Where("stripe_payment_intent_id = ? AND status = 'pending'", pi.ID).
+				First(&payment).Error == nil {
+				database.DB.Model(&payment).Update("status", "escrowed")
 				database.DB.Create(&models.WalletTransaction{
 					UserID:      payment.PayerID,
 					Type:        "payment",

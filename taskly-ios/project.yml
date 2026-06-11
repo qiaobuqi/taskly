@@ -10,7 +10,7 @@ settings:
   base:
     SWIFT_VERSION: "5.9"
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "1"
+    CURRENT_PROJECT_VERSION: "2"
     DEVELOPMENT_TEAM: K65RWCXUXM
     CODE_SIGN_STYLE: Automatic
     ENABLE_PREVIEWS: YES
@@ -36,10 +36,45 @@ targets:
           - Info.plist
     info:
       path: Sources/Taskly/Info.plist
+      properties:
+        # Home-screen display name. The bundle ID is taskly.cnirv.com (the existing
+        # App Store record "来活儿"); only the user-visible name is set here.
+        CFBundleDisplayName: Taskly
+        # Reference the build settings so the version lives in one place
+        # (settings.base below) and survives `xcodegen generate`.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        # A real launch-screen background (matches Color.appBackground) — an empty
+        # UILaunchScreen dict renders as a black screen on device during cold start.
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        # We only use HTTPS/standard crypto — declare exempt so App Store Connect
+        # doesn't ask the export-compliance question on every upload.
+        ITSAppUsesNonExemptEncryption: false
+        # Required by ITMS-90683: the bundled Stripe SDK references the camera API
+        # (payment-card scanning in the payment sheet). A purpose string is mandatory
+        # even though the app's own code only uses the system PhotosPicker.
+        NSCameraUsageDescription: Taskly uses the camera so you can scan your payment card when adding a payment method to pay for a task.
+        # iPhone-only, portrait-only app: a single portrait orientation is
+        # enough and avoids landscape layout breakage. (Upside-down is not
+        # supported on Face ID iPhones anyway.)
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+          NSExceptionDomains:
+            localhost:
+              NSExceptionAllowsInsecureHTTPLoads: true
+              NSIncludesSubdomains: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.taskly.app
+        PRODUCT_BUNDLE_IDENTIFIER: taskly.cnirv.com
         INFOPLIST_FILE: Sources/Taskly/Info.plist
+        TARGETED_DEVICE_FAMILY: "1"   # 1 = iPhone only (no iPad build)
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # A formatter keeps re-touching Taskly.entitlements; this dev-only flag stops
+        # Xcode erroring out when the entitlements file changes during the build.
+        CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION: YES
     dependencies:
       - package: Alamofire
       - package: Kingfisher
@@ -49,3 +84,20 @@ targets:
         product: StripeApplePay
     entitlements:
       path: Sources/Taskly/Taskly.entitlements
+      properties:
+        # Sign in with Apple. Without this entitlement the ASAuthorizationController
+        # fails instantly (error 1000) and the button appears unresponsive — which is
+        # exactly what App Review hit (Guideline 2.1).
+        com.apple.developer.applesignin:
+          - Default
+
+# Explicit shared scheme so fastlane (gym/build_app) can find "Taskly".
+schemes:
+  Taskly:
+    build:
+      targets:
+        Taskly: all
+    run:
+      config: Debug
+    archive:
+      config: Release

@@ -4,6 +4,8 @@ import Kingfisher
 struct TaskDetailView: View {
     let task: TaskItem
     @EnvironmentObject var authManager: AuthManager
+    @EnvironmentObject var router: AppRouter
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var vm: TaskDetailViewModel
     @State private var showApply = false
     @State private var showChat = false
@@ -50,7 +52,7 @@ struct TaskDetailView: View {
                         }
                         Text(currentTask.title).font(.title2.bold())
                         Text("\(currentTask.currency) \(currentTask.budget, specifier: "%.0f")")
-                            .font(.title.bold()).foregroundStyle(.blue)
+                            .font(.title.bold()).foregroundStyle(Color.brand)
                     }
 
                     Divider()
@@ -123,74 +125,129 @@ struct TaskDetailView: View {
                 ReviewView(task: currentTask, reviewee: reviewee, onSuccess: { await vm.reload() })
             }
         }
-        .confirmationDialog("Report or Block", isPresented: $showReport) {
-            Button("Report this task", role: .destructive) { Task { await vm.report() } }
-            Button("Cancel", role: .cancel) {}
+        .sheet(isPresented: $showReport) {
+            ModerationSheet(
+                subject: "user",
+                onReport: { await vm.report() },
+                // Only non-owners can block the publisher; hide it on your own task.
+                onBlock: (!isOwner && currentTask.publisher != nil)
+                    ? { await vm.blockPublisher(); dismiss() }
+                    : nil
+            )
         }
         .task { await vm.reload() }
+        .onAppear {
+            Analytics.shared.track("task_open",
+                ["task_id": currentTask.id, "category": currentTask.category.rawValue])
+        }
     }
 
     @ViewBuilder
     private var actionBar: some View {
         let status = currentTask.status
-        VStack(spacing: 0) {
-            Divider()
-            HStack(spacing: 12) {
-                // Non-owner: apply or message
+        // Only render the bar when there's actually an action for this user/status,
+        // so we don't leave an empty floating bar (e.g. owner viewing an open task).
+        if hasAction(status) {
+            HStack(spacing: Space.md) {
+                // Non-owner: message + apply
                 if !isOwner && !isAssignee && status == .open {
-                    Button { showChat = true } label: {
+                    Button {
+                        if authManager.isLoggedIn { showChat = true } else { router.showLogin = true }
+                    } label: {
                         Label("Message", systemImage: "bubble.left")
-                            .frame(maxWidth: .infinity).frame(height: 50)
-                            .background(Color(.systemGray6))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    .foregroundStyle(.primary)
-                    Button { showApply = true } label: {
-                        Text("Apply Now").fontWeight(.semibold)
-                            .frame(maxWidth: .infinity).frame(height: 50)
-                            .background(.blue).foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
+                    .buttonStyle(SecondaryButtonStyle())
+                    Button {
+                        // Applying requires an account — prompt login for guests.
+                        guard authManager.isLoggedIn else { router.showLogin = true; return }
+                        Analytics.shared.track("apply_open", ["task_id": currentTask.id])
+                        showApply = true
+                    } label: { Text("Apply Now") }
+                        .buttonStyle(PrimaryButtonStyle())
                 }
                 // Owner: pay to start (after accepting applicant)
                 if isOwner && status == .inProgress {
-                    Button { showPayment = true } label: {
-                        Text("Pay & Confirm").fontWeight(.semibold)
-                            .frame(maxWidth: .infinity).frame(height: 50)
-                            .background(.blue).foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
+                    Button {
+                        Analytics.shared.track("pay_open", ["task_id": currentTask.id, "amount": currentTask.budget])
+                        showPayment = true
+                    } label: { Text("Pay & Confirm") }
+                        .buttonStyle(PrimaryButtonStyle())
                 }
                 // Assignee: mark complete
                 if isAssignee && status == .inProgress {
-                    Button { showCompletion = true } label: {
-                        Text("Mark Complete").fontWeight(.semibold)
-                            .frame(maxWidth: .infinity).frame(height: 50)
-                            .background(.green).foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
+                    Button { showCompletion = true } label: { Text("Mark Complete") }
+                        .buttonStyle(PrimaryButtonStyle())
                 }
                 // Owner: confirm completion
                 if isOwner && status == .pendingConfirm {
-                    Button { Task { await vm.confirmCompletion() } } label: {
-                        Text("Confirm & Release Payment").fontWeight(.semibold)
-                            .frame(maxWidth: .infinity).frame(height: 50)
-                            .background(.green).foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
+                    Button { Task { await vm.confirmCompletion() } } label: { Text("Confirm & Release Payment") }
+                        .buttonStyle(PrimaryButtonStyle())
                 }
-                // Both: leave review
+                // Both: leave review — amber so it reads as a distinct, optional action.
                 if (isOwner || isAssignee) && status == .completed {
-                    Button { showReview = true } label: {
-                        Text("Leave Review").fontWeight(.semibold)
-                            .frame(maxWidth: .infinity).frame(height: 50)
-                            .background(.orange).foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
+                    Button { showReview = true } label: { Text("Leave Review") }
+                        .buttonStyle(PrimaryButtonStyle(tint: .orange))
                 }
             }
-            .padding()
-            .background(.background)
+            .padding(.horizontal, Space.lg)
+            .padding(.vertical, Space.md)
+            .background(.ultraThinMaterial)
+        }
+    }
+
+    private func hasAction(_ status: TaskStatus) -> Bool {
+        (!isOwner && !isAssignee && status == .open)
+        || (isOwner && status == .inProgress)
+        || (isAssignee && status == .inProgress)
+        || (isOwner && status == .pendingConfirm)
+        || ((isOwner || isAssignee) && status == .completed)
+    }
+}
+
+// MARK: - Shared Components
+
+struct DetailRow: View {
+    let icon: String
+    let label: String
+    let value: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .frame(width: 20)
+                .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label).font(.caption).foregroundStyle(.secondary)
+                Text(value).font(.subheadline)
+            }
+            Spacer()
+        }
+    }
+}
+
+struct UserRowView: View {
+    let user: User
+
+    var body: some View {
+        HStack(spacing: 12) {
+            KFImage(URL(string: user.avatar ?? ""))
+                .placeholder { Circle().fill(Color(.systemGray5)) }
+                .resizable().scaledToFill()
+                .frame(width: 40, height: 40).clipShape(Circle())
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 4) {
+                    Text(user.nickname).font(.subheadline.bold())
+                    if user.isVerified {
+                        Image(systemName: "checkmark.seal.fill").font(.caption).foregroundStyle(.blue)
+                    }
+                }
+                HStack(spacing: 4) {
+                    Image(systemName: "star.fill").font(.caption2).foregroundStyle(.yellow)
+                    Text(String(format: "%.1f", user.rating)).font(.caption)
+                    Text("· \(user.completedCount) completed").font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
         }
     }
 }
@@ -199,26 +256,7 @@ struct TaskDetailView: View {
 
 struct StatusBadge: View {
     let status: TaskStatus
-
-    var color: Color {
-        switch status {
-        case .open: return .green
-        case .inProgress: return .orange
-        case .pendingConfirm: return .blue
-        case .completed: return .gray
-        case .cancelled: return .red
-        case .disputed: return .purple
-        }
-    }
-
-    var body: some View {
-        Text(status.displayName)
-            .font(.caption.bold())
-            .padding(.horizontal, 8).padding(.vertical, 4)
-            .background(color.opacity(0.15))
-            .foregroundStyle(color)
-            .clipShape(Capsule())
-    }
+    var body: some View { StatusChip(status: status) }
 }
 
 // MARK: - Applications Section
@@ -279,13 +317,13 @@ struct ApplicationRowView: View {
             Text(application.message).font(.subheadline).foregroundStyle(.secondary).lineLimit(3)
             HStack {
                 Text("Offered: $\(application.proposedPrice, specifier: "%.0f")")
-                    .font(.subheadline.bold()).foregroundStyle(.blue)
+                    .font(.subheadline.bold()).foregroundStyle(Color.brand)
                 Spacer()
                 if application.status == .pending {
                     Button("Accept", action: onAccept)
                         .font(.subheadline.bold())
                         .padding(.horizontal, 16).padding(.vertical, 6)
-                        .background(.blue).foregroundStyle(.white)
+                        .background(Color.brand).foregroundStyle(.white)
                         .clipShape(Capsule())
                 } else {
                     Text(application.status.rawValue.capitalized)
@@ -334,5 +372,19 @@ final class TaskDetailViewModel: ObservableObject {
                 body: ReportBody(targetType: "task", reason: "inappropriate", targetId: taskId)
             )
         } catch { print("Report failed: \(error)") }
+    }
+
+    /// Block the task's publisher. Files a report (notifying the developer) and
+    /// hides their content from this user's feed immediately (Guideline 1.2).
+    func blockPublisher() async {
+        guard let publisherId = task?.publisher?.id ?? task?.publisherId else { return }
+        do {
+            struct BlockBody: Encodable { let blockedId: Int; let reason: String }
+            let _: EmptyResponse = try await NetworkManager.shared.requestJSON(
+                "/blocks",
+                body: BlockBody(blockedId: publisherId, reason: "blocked from task detail")
+            )
+            NotificationCenter.default.post(name: .tasksDidChange, object: nil)
+        } catch { print("Block failed: \(error)") }
     }
 }
