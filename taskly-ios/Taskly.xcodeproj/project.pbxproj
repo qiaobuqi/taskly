@@ -44,6 +44,7 @@
 		D95E599705D7438714E38571 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 70BF9431D33DE15B8A2952B6 /* PrivacyInfo.xcprivacy */; };
 		E9CB2AC161B0E5F7740A38F6 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B86FA702642959B9C2B89835 /* RootView.swift */; };
 		EF3F0EF494D8FFE68AAB195F /* SignInPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C99BACCD2C7CC8C6C305FBF /* SignInPromptView.swift */; };
+		F59D5AE00AFE76A2159876CF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7B479E1D23AC821B5DDE87AC /* LaunchScreen.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -58,11 +59,12 @@
 		3FFA72FF2D2800A79990870E /* VerificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationView.swift; sourceTree = "<group>"; };
 		443BA68B9B43524ADA33A1C8 /* PostServiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostServiceView.swift; sourceTree = "<group>"; };
 		547E1415038E71673ED9136F /* ApplyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplyView.swift; sourceTree = "<group>"; };
-		627F805F842924DE2CF043DA /* Taskly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Taskly.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		627F805F842924DE2CF043DA /* Taskly.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Taskly.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6C204952F646871EA2A7AF06 /* MessagesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesView.swift; sourceTree = "<group>"; };
 		6C99BACCD2C7CC8C6C305FBF /* SignInPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInPromptView.swift; sourceTree = "<group>"; };
-		70BF9431D33DE15B8A2952B6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		70BF9431D33DE15B8A2952B6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		7954227E1D305AD3971B49D2 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		7B479E1D23AC821B5DDE87AC /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		80EEE6CB1756C192BC6D6503 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		868FF183B4B3E59C345BA4E0 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		9543966ED65ECD73FC814914 /* Analytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analytics.swift; sourceTree = "<group>"; };
@@ -238,6 +240,7 @@
 			isa = PBXGroup;
 			children = (
 				80EEE6CB1756C192BC6D6503 /* Assets.xcassets */,
+				7B479E1D23AC821B5DDE87AC /* LaunchScreen.storyboard */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -363,6 +366,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA44AD2F8E602BF62A1CDE20 /* Assets.xcassets in Resources */,
+				F59D5AE00AFE76A2159876CF /* LaunchScreen.storyboard in Resources */,
 				D95E599705D7438714E38571 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -446,7 +450,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = K65RWCXUXM;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -507,7 +511,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = K65RWCXUXM;
 				ENABLE_PREVIEWS = YES;
@@ -547,7 +551,6 @@
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = Sources/Taskly/Taskly.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 6;
 				INFOPLIST_FILE = Sources/Taskly/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -566,7 +569,6 @@
 				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
 				CODE_SIGN_ENTITLEMENTS = Sources/Taskly/Taskly.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 6;
 				INFOPLIST_FILE = Sources/Taskly/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

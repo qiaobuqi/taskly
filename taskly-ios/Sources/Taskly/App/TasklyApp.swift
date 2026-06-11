@@ -13,6 +13,7 @@ struct TasklyApp: App {
         let imageConfig = URLSessionConfiguration.default
         imageConfig.timeoutIntervalForRequest = 15
         imageConfig.connectionProxyDictionary = [:]
+        imageConfig.proxyConfigurations = []
         ImageDownloader.default.sessionConfiguration = imageConfig
 
         // Cold-launch open — first signal for DAU.

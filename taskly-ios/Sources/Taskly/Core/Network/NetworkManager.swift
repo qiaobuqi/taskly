@@ -21,7 +21,17 @@ final class NetworkManager: ObservableObject {
         // Bypass any system/VPN HTTP proxy (Clash, Shadowrocket, …). The API is
         // hosted in mainland China, so direct is always the fast path — and local
         // proxies were breaking TLS to taskly.cnirv.com (-9816 handshake failures).
+        // BOTH knobs are needed: connectionProxyDictionary covers classic system
+        // proxies; proxyConfigurations (iOS 17) covers NetworkExtension-installed
+        // ones, which ignore the legacy dictionary.
         config.connectionProxyDictionary = [:]
+        config.proxyConfigurations = []
+        #if DEBUG
+        // Build marker: if device logs show connections to a 127.0.0.1 proxy but
+        // this line is present, the bypass regressed; if the line is missing, an
+        // OLD build is running.
+        print("🛡 [NET] NetworkManager up — baseURL=\(APIConstants.baseURL), proxy bypass ACTIVE")
+        #endif
 
         self.session = Session(
             configuration: config,

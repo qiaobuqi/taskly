@@ -44,10 +44,9 @@ targets:
         # (settings.base below) and survives `xcodegen generate`.
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-        # A real launch-screen background (matches Color.appBackground) — an empty
-        # UILaunchScreen dict renders as a black screen on device during cold start.
-        UILaunchScreen:
-          UIColorName: LaunchBackground
+        # Storyboard launch screen (LaunchBackground color + centered logo) — the
+        # previous empty UILaunchScreen dict rendered as a black screen on device.
+        UILaunchStoryboardName: LaunchScreen
         # We only use HTTPS/standard crypto — declare exempt so App Store Connect
         # doesn't ask the export-compliance question on every upload.
         ITSAppUsesNonExemptEncryption: false

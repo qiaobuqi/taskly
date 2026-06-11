@@ -35,6 +35,7 @@ final class Analytics {
         config.timeoutIntervalForRequest = 15
         config.timeoutIntervalForResource = 20
         config.connectionProxyDictionary = [:]
+        config.proxyConfigurations = []
         return URLSession(configuration: config)
     }()
 

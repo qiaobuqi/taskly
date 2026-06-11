@@ -1,0 +1,23 @@
+{
+  "skill_name": "ios-device-debug",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我的 SwiftUI app 在真机上打开会黑屏两秒才进首页，模拟器上没这个问题，帮我看看怎么回事",
+      "expected_output": "Diagnoses missing/empty launch screen config (UILaunchScreen empty dict renders black on device), fixes via UIColorName/storyboard, warns about iOS launch-snapshot cache (delete & reinstall), verifies the built artifact with plutil/assetutil instead of only editing source.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "用户反馈点 Apple 登录没反应，App Store 审核也因为这个拒了我们（Guideline 2.1），但我自己手机上测是好的。后端是 Go 部署在阿里云，怎么查？",
+      "expected_output": "Follows the evidence order: check server logs for /auth/apple from reviewer IPs (17.x) first, distinguishes system alert vs app alert, adds staged analytics black box with NSUnderlyingErrorKey chain and immediate flush, adds loading+alert UX so the button can never look unresponsive, drafts a log-evidence-based Resolution Center reply.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "真机日志里一堆 nw_endpoint_flow_failed_with_error 127.0.0.1:7890 和 Error Code=-1200 TLS error，接口全部超时转圈，但服务器本身是好的，curl 没问题",
+      "expected_output": "Identifies 127.0.0.1:<port> as a local proxy (Clash family) breaking TLS, applies BOTH connectionProxyDictionary=[:] and proxyConfigurations=[] on iOS 17+, audits all network surfaces (Alamofire, URLSession.shared, Kingfisher/AsyncImage), caps waitsForConnectivity with timeoutIntervalForResource, and adds a startup build marker to detect stale builds.",
+      "files": []
+    }
+  ]
+}
