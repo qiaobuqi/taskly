@@ -55,14 +55,6 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 在 App ID 上开启 Sign in with Apple 能力（幂等）
 
-### ios list_caps
-
-```sh
-[bundle exec] fastlane ios list_caps
-```
-
-诊断：列出 App ID 已开启的能力
-
 ### ios build
 
 ```sh

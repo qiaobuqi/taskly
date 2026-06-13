@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -16,6 +17,24 @@ import (
 type UploadHandler struct{}
 
 func NewUploadHandler() *UploadHandler { return &UploadHandler{} }
+
+// UploadDir is where uploaded images are persisted; routes.Setup serves it at
+// /uploads. Override via UPLOAD_DIR (systemd sets an absolute path — the
+// service's cwd is not the app dir).
+func UploadDir() string {
+	if dir := os.Getenv("UPLOAD_DIR"); dir != "" {
+		return dir
+	}
+	return "./uploads"
+}
+
+// PublicBaseURL is the externally reachable origin used to build file URLs.
+func PublicBaseURL() string {
+	if base := os.Getenv("PUBLIC_BASE_URL"); base != "" {
+		return strings.TrimRight(base, "/")
+	}
+	return "https://taskly.cnirv.com"
+}
 
 // POST /v1/upload/image
 func (h *UploadHandler) Image(c *gin.Context) {
@@ -32,13 +51,11 @@ func (h *UploadHandler) Image(c *gin.Context) {
 		return
 	}
 
-	// Read into memory (for MVP; production: upload to S3/Supabase Storage)
 	data, err := io.ReadAll(io.LimitReader(file, 10<<20)) // 10MB limit
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Fail(500, "read error"))
 		return
 	}
-	_ = data // TODO: upload to cloud storage
 
 	ext := filepath.Ext(header.Filename)
 	if ext == "" {
@@ -46,7 +63,18 @@ func (h *UploadHandler) Image(c *gin.Context) {
 	}
 	filename := uuid.New().String() + ext
 
-	// MVP: return a placeholder URL (replace with actual CDN URL after upload)
-	url := fmt.Sprintf("https://storage.taskly.app/images/%s", filename)
+	// Persist to local disk; the file is served back at /uploads/<name>.
+	// (Move to OSS/S3 when traffic outgrows one box.)
+	dir := UploadDir()
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		c.JSON(http.StatusInternalServerError, models.Fail(500, "storage error"))
+		return
+	}
+	if err := os.WriteFile(filepath.Join(dir, filename), data, 0o644); err != nil {
+		c.JSON(http.StatusInternalServerError, models.Fail(500, "storage error"))
+		return
+	}
+
+	url := fmt.Sprintf("%s/uploads/%s", PublicBaseURL(), filename)
 	c.JSON(http.StatusOK, models.OK(gin.H{"url": url}))
 }

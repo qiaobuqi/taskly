@@ -152,6 +152,19 @@ final class NetworkManager: ObservableObject {
         }
     }
 
+    /// Fire-and-forget POST through the shared Alamofire session, so callers like
+    /// Analytics inherit the proxy bypass, timeouts, auth header and [NET] logging
+    /// instead of maintaining a parallel URLSession. Returns the HTTP status.
+    func post(_ path: String, payload: [String: Any]) async -> Int? {
+        await withCheckedContinuation { continuation in
+            session.request(baseURL + path, method: .post, parameters: payload,
+                            encoding: JSONEncoding.default)
+                .response { resp in
+                    continuation.resume(returning: resp.response?.statusCode)
+                }
+        }
+    }
+
     // Dictionary body convenience (for simple [String: Any] payloads)
     func requestJSON<T: Codable>(_ path: String, body: [String: Any]) async throws -> T {
         let url = baseURL + path
@@ -193,12 +206,12 @@ final class AuthInterceptor: RequestInterceptor {
 final class NetworkLogger: EventMonitor {
     let queue = DispatchQueue(label: "com.taskly.networklogger")
 
-    func requestDidResume(_ request: Request) {
+    // NOTE: logged from didCreateURLRequest, not requestDidResume — at resume
+    // time Alamofire hasn't materialized the URLRequest yet (prints "? ?").
+    func request(_ request: Request, didCreateURLRequest urlRequest: URLRequest) {
         #if DEBUG
-        let method = request.request?.httpMethod ?? "?"
-        let url = request.request?.url?.absoluteString ?? "?"
-        var line = "➡️ [NET] \(method) \(url)"
-        if let body = request.request?.httpBody, let s = String(data: body, encoding: .utf8) {
+        var line = "➡️ [NET] \(urlRequest.httpMethod ?? "?") \(urlRequest.url?.absoluteString ?? "?")"
+        if let body = urlRequest.httpBody, let s = String(data: body, encoding: .utf8) {
             line += "\n   body: \(s)"
         }
         print(line)

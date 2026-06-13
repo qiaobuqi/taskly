@@ -27,6 +27,9 @@ func Setup(r *gin.Engine) {
 	v1.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
+	// Uploaded images (chat photos, task photos) — persisted by the upload
+	// handler and served straight from disk.
+	r.Static("/uploads", handlers.UploadDir())
 	// Public legal pages (App Store privacy-policy URL requirement). Served at /v1/...
 	// and also at root /privacy, /terms for a clean public URL.
 	v1.GET("/privacy", handlers.PrivacyPage)

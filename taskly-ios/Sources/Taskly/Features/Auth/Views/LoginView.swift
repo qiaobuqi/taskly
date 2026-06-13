@@ -130,6 +130,14 @@ struct LoginView: View {
 
     private var appleButton: some View {
         SignInWithAppleButton(.signIn) { request in
+            // Runs at button tap — gives the funnel a "started" mark so a system
+            // flow that dies without ever calling onCompletion is still visible
+            // (started with no matching completion = died inside Apple's UI).
+            #if DEBUG
+            print("🍎 [apple-login] started — authorization requested")
+            #endif
+            Analytics.shared.track("apple_login_started")
+            Analytics.shared.flush()
             request.requestedScopes = [.fullName, .email]
         } onCompletion: { result in
             Task {

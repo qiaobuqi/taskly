@@ -25,19 +25,7 @@ final class Analytics {
     private var sessionID = UUID().uuidString
     private var buffer: [AnalyticsEvent] = []
     private var flushTask: Task<Void, Never>?
-    private let endpoint = URL(string: APIConstants.baseURL + "/analytics/events")!
     private let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
-
-    // Same network posture as NetworkManager: bypass local VPN/HTTP proxies
-    // (they break TLS to our mainland-China API) and never wait unbounded.
-    private static let urlSession: URLSession = {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 15
-        config.timeoutIntervalForResource = 20
-        config.connectionProxyDictionary = [:]
-        config.proxyConfigurations = []
-        return URLSession(configuration: config)
-    }()
 
     private init() {
         // Stable per-install id so logged-out opens still count toward DAU and tie
@@ -99,21 +87,15 @@ final class Analytics {
             "events": batch.map { ["event": $0.event, "session_id": $0.sessionID,
                                    "ts": $0.ts, "props": $0.props] }
         ]
-        guard let body = try? JSONSerialization.data(withJSONObject: payload) else { return }
-
-        var req = URLRequest(url: endpoint)
-        req.httpMethod = "POST"
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        // Attach the auth token if present so events are tied to the user.
-        if let token = UserDefaults.standard.string(forKey: "auth_token") {
-            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-        req.httpBody = body
-
-        Task.detached {
-            // Fire-and-forget; on failure we simply drop this batch (acceptable for
-            // product analytics, and avoids unbounded memory growth offline).
-            _ = try? await Analytics.urlSession.data(for: req)
+        Task {
+            // Fire-and-forget through the shared Alamofire session (one network
+            // stack for the whole app: auth header, timeouts, [NET] logging). On
+            // failure we simply drop this batch — acceptable for product
+            // analytics, and avoids unbounded memory growth offline.
+            let status = await NetworkManager.shared.post("/analytics/events", payload: payload)
+            #if DEBUG
+            print("📤 [analytics] flushed \(batch.count) events → HTTP \(status ?? -1)")
+            #endif
         }
     }
 }

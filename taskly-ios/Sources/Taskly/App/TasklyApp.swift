@@ -1,5 +1,4 @@
 import SwiftUI
-import Kingfisher
 
 @main
 struct TasklyApp: App {
@@ -8,14 +7,6 @@ struct TasklyApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
-        // Image downloads bypass local VPN/HTTP proxies too — same reason as
-        // NetworkManager: avatars are served from our mainland-China API host.
-        let imageConfig = URLSessionConfiguration.default
-        imageConfig.timeoutIntervalForRequest = 15
-        imageConfig.connectionProxyDictionary = [:]
-        imageConfig.proxyConfigurations = []
-        ImageDownloader.default.sessionConfiguration = imageConfig
-
         // Cold-launch open — first signal for DAU.
         Analytics.shared.track("app_open", ["logged_in": AuthManager.shared.isLoggedIn])
         Analytics.shared.startSession(cold: true)

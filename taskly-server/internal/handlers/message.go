@@ -139,15 +139,21 @@ func (h *MessageHandler) Send(c *gin.Context) {
 	uid := middleware.CurrentUserID(c)
 	var req struct {
 		ReceiverID uint   `json:"receiver_id" binding:"required"`
-		Content    string `json:"content" binding:"required"`
+		Content    string `json:"content"`
+		ImageURL   string `json:"image_url"`
 		TaskID     *uint  `json:"task_id"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, models.Fail(400, err.Error()))
 		return
 	}
+	// A message is text, an image, or both — but never empty.
+	if req.Content == "" && req.ImageURL == "" {
+		c.JSON(http.StatusBadRequest, models.Fail(400, "message must contain text or an image"))
+		return
+	}
 	// Filter objectionable content in chat (App Store Guideline 1.2).
-	if ContainsObjectionableContent(req.Content) {
+	if req.Content != "" && ContainsObjectionableContent(req.Content) {
 		c.JSON(http.StatusBadRequest, models.Fail(400, "Your message contains language that violates our content policy."))
 		return
 	}
@@ -162,6 +168,7 @@ func (h *MessageHandler) Send(c *gin.Context) {
 		SenderID:   uid,
 		ReceiverID: req.ReceiverID,
 		Content:    req.Content,
+		ImageURL:   req.ImageURL,
 		TaskID:     req.TaskID,
 	}
 	database.DB.Create(&msg)

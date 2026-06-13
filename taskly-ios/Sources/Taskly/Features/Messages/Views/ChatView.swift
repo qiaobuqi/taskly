@@ -1,4 +1,6 @@
 import SwiftUI
+import PhotosUI
+import Kingfisher
 
 struct ChatView: View {
     let otherUser: User
@@ -8,6 +10,7 @@ struct ChatView: View {
     @StateObject private var vm: ChatViewModel
     @State private var inputText = ""
     @State private var showModeration = false
+    @State private var photoItem: PhotosPickerItem?
 
     init(otherUser: User, taskId: Int?) {
         self.otherUser = otherUser
@@ -42,6 +45,28 @@ struct ChatView: View {
 
             // Input bar
             HStack(spacing: 12) {
+                PhotosPicker(selection: $photoItem, matching: .images) {
+                    if vm.isSendingImage {
+                        ProgressView()
+                            .frame(width: 28, height: 28)
+                    } else {
+                        Image(systemName: "photo")
+                            .font(.system(size: 22))
+                            .foregroundStyle(.blue)
+                    }
+                }
+                .disabled(vm.isSendingImage)
+                .accessibilityLabel("Send a Photo")
+                .onChange(of: photoItem) { _, item in
+                    guard let item else { return }
+                    // Reset the binding only AFTER the send: nilling it mid-dismissal
+                    // can make the picker re-assign the item and double-send.
+                    Task {
+                        await vm.sendImage(from: item, taskId: taskId)
+                        photoItem = nil
+                    }
+                }
+
                 TextField("Message...", text: $inputText, axis: .vertical)
                     .lineLimit(1...4)
                     .padding(.horizontal, 12)
@@ -53,7 +78,12 @@ struct ChatView: View {
                     guard !inputText.trimmingCharacters(in: .whitespaces).isEmpty else { return }
                     let text = inputText
                     inputText = ""
-                    Task { await vm.sendMessage(text, taskId: taskId) }
+                    Task {
+                        let ok = await vm.sendMessage(text, taskId: taskId)
+                        // Failed? Put the text back so it isn't lost (unless the
+                        // user already started typing something new).
+                        if !ok && inputText.isEmpty { inputText = text }
+                    }
                 } label: {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.system(size: 32))
@@ -73,6 +103,14 @@ struct ChatView: View {
                     Image(systemName: "ellipsis.circle")
                 }
             }
+        }
+        .alert("Message Not Sent", isPresented: Binding(
+            get: { vm.sendError != nil },
+            set: { if !$0 { vm.sendError = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(vm.sendError ?? "Please check your connection and try again.")
         }
         .sheet(isPresented: $showModeration) {
             ModerationSheet(
@@ -95,13 +133,27 @@ struct MessageBubble: View {
     var body: some View {
         HStack {
             if isFromMe { Spacer() }
-            Text(message.content)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(isFromMe ? Color.blue : Color(.systemGray5))
-                .foregroundStyle(isFromMe ? .white : .primary)
-                .clipShape(RoundedRectangle(cornerRadius: 18))
-                .frame(maxWidth: 280, alignment: isFromMe ? .trailing : .leading)
+            if let url = message.imageUrl, !url.isEmpty {
+                KFImage(URL(string: url))
+                    .placeholder {
+                        RoundedRectangle(cornerRadius: 18)
+                            .fill(Color(.systemGray5))
+                            .overlay(ProgressView())
+                    }
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 200, height: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .accessibilityLabel("Photo message")
+            } else {
+                Text(message.content)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(isFromMe ? Color.blue : Color(.systemGray5))
+                    .foregroundStyle(isFromMe ? .white : .primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                    .frame(maxWidth: 280, alignment: isFromMe ? .trailing : .leading)
+            }
             if !isFromMe { Spacer() }
         }
     }
@@ -131,21 +183,55 @@ final class ChatViewModel: ObservableObject {
         isLoading = false
     }
 
-    func sendMessage(_ content: String, taskId: Int?) async {
-        do {
-            struct SendBody: Encodable {
-                let receiverId: Int
-                let content: String
-                let taskId: Int?
+    @Published var isSendingImage = false
+    @Published var sendError: String?
+
+    private struct SendBody: Encodable {
+        let receiverId: Int
+        let content: String
+        let imageUrl: String?
+        let taskId: Int?
+    }
+
+    /// POST with one automatic retry (transient drops are common on mobile).
+    /// Returns false and sets `sendError` on final failure so the caller can
+    /// restore the user's input instead of losing it silently.
+    private func deliver(_ body: SendBody) async -> Bool {
+        for attempt in 1...2 {
+            do {
+                let msg: ChatMessage = try await NetworkManager.shared.requestJSON("/messages", body: body)
+                messages.append(msg)
+                return true
+            } catch {
+                if attempt == 2 { sendError = error.localizedDescription }
             }
-            let msg: ChatMessage = try await NetworkManager.shared.requestJSON(
-                "/messages",
-                body: SendBody(receiverId: otherUserId, content: content, taskId: taskId)
-            )
-            messages.append(msg)
-        } catch {
-            print("Failed to send message: \(error)")
         }
+        return false
+    }
+
+    /// Pick → compress → upload → send as an image message.
+    func sendImage(from item: PhotosPickerItem, taskId: Int?) async {
+        guard !isSendingImage else { return }   // dedup: one in-flight send max
+        isSendingImage = true
+        defer { isSendingImage = false }
+        do {
+            guard let data = try await item.loadTransferable(type: Data.self),
+                  let image = UIImage(data: data),
+                  let jpeg = image.jpegData(compressionQuality: 0.8) else {
+                sendError = "Could not read that photo. Please try another one."
+                return
+            }
+            struct UploadResponse: Codable { let url: String }
+            let uploaded: UploadResponse = try await NetworkManager.shared.uploadImage(jpeg, path: "/upload/image")
+            _ = await deliver(SendBody(receiverId: otherUserId, content: "", imageUrl: uploaded.url, taskId: taskId))
+        } catch {
+            sendError = error.localizedDescription
+        }
+    }
+
+    @discardableResult
+    func sendMessage(_ content: String, taskId: Int?) async -> Bool {
+        await deliver(SendBody(receiverId: otherUserId, content: content, imageUrl: nil, taskId: taskId))
     }
 
     /// Report this user to the moderation queue (reviewed within 24h).

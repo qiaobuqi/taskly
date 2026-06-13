@@ -1,4 +1,5 @@
 import SwiftUI
+import Kingfisher
 
 struct MessagesView: View {
     @EnvironmentObject private var authManager: AuthManager
@@ -48,13 +49,16 @@ struct ConversationRowView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            AsyncImage(url: URL(string: conversation.otherUser.avatar ?? "")) { image in
-                image.resizable().scaledToFill()
-            } placeholder: {
-                Circle().fill(Color(.systemGray5))
-                    .overlay(Image(systemName: "person.fill").foregroundStyle(.gray))
-            }
-            .frame(width: 48, height: 48)
+            // KFImage like the rest of the app (ProfileView etc.) — AsyncImage
+            // rides URLSession.shared and caches nothing.
+            KFImage(URL(string: conversation.otherUser.avatar ?? ""))
+                .placeholder {
+                    Circle().fill(Color(.systemGray5))
+                        .overlay(Image(systemName: "person.fill").foregroundStyle(.gray))
+                }
+                .resizable()
+                .scaledToFill()
+                .frame(width: 48, height: 48)
             .clipShape(Circle())
             .overlay(alignment: .topTrailing) {
                 if conversation.unreadCount > 0 {
