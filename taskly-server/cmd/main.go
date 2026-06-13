@@ -6,6 +6,7 @@ import (
 
 	"taskly-server/internal/config"
 	"taskly-server/internal/database"
+	"taskly-server/internal/mail"
 	"taskly-server/internal/middleware"
 	"taskly-server/internal/routes"
 	"taskly-server/internal/services"
@@ -28,6 +29,14 @@ func main() {
 	}
 
 	services.StartCron()
+
+	// 邮件子系统:收信(:25)与提交(:587/:465)服务,各自 goroutine 运行,
+	// 出错只记日志,不影响 Taskly 主 API。由 MAIL_ENABLED=1 开启。
+	mail.InitConfig()
+	if mail.Cfg.Enabled {
+		go mail.StartReceiver()
+		go mail.StartSubmission()
+	}
 
 	gin.SetMode(config.Global.Server.Mode)
 	r := gin.New()

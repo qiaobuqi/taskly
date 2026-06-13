@@ -18,6 +18,44 @@ import (
 	"github.com/google/uuid"
 )
 
+// SendDirectMail 通过阿里云 DirectMail SingleSendMail API 发一封邮件。
+// accountName 必须是已验证的发信地址(如 luyutech@m.cnirv.com)。
+// text / html 至少给一个。供邮件客户端提交服务在未配置 SMTP 中继密码时使用。
+func SendDirectMail(accountName, fromAlias, to, subject, text, html string) error {
+	cfg := config.Global.DirectMail
+	if cfg.AccessKeyID == "" {
+		return fmt.Errorf("directmail not configured")
+	}
+	region := cfg.Region
+	if region == "" {
+		region = "cn-hangzhou"
+	}
+	if text == "" && html == "" {
+		text = "(no content)"
+	}
+	params := map[string]string{
+		"Action":         "SingleSendMail",
+		"AccountName":    accountName,
+		"AddressType":    "1",
+		"ReplyToAddress": "false",
+		"ToAddress":      to,
+		"Subject":        subject,
+		"Format":         "JSON",
+		"Version":        "2015-11-23",
+		"RegionId":       region,
+	}
+	if text != "" {
+		params["TextBody"] = text
+	}
+	if html != "" {
+		params["HtmlBody"] = html
+	}
+	if fromAlias != "" {
+		params["FromAlias"] = fromAlias
+	}
+	return aliyunRPCPost("https://dm.aliyuncs.com/", cfg.AccessKeyID, cfg.AccessKeySecret, params)
+}
+
 // SendVerificationCode emails a 6-digit code via Aliyun DirectMail (邮件推送).
 // If DirectMail isn't configured yet (no verified sender) or the send fails, it
 // falls back to logging the code to the server console so registration can still be

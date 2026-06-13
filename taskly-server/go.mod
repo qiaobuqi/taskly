@@ -3,6 +3,9 @@ module taskly-server
 go 1.21
 
 require (
+	github.com/emersion/go-message v0.18.2
+	github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6
+	github.com/emersion/go-smtp v0.21.3
 	github.com/gin-contrib/cors v1.5.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
