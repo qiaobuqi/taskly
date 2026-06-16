@@ -44,6 +44,11 @@ func Init() error {
 
 	DB = db
 	log.Printf("✅ Database connected (mysql %s/%s)", cfg.Host, cfg.Name)
+
+	// Guarantee the App Review demo account always has a populated Messages tab
+	// (idempotent — see seed.go). Fixes the recurring "empty Messages screen"
+	// rejection (Guideline 2.1).
+	SeedReviewData()
 	return nil
 }
 

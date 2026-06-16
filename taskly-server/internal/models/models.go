@@ -27,6 +27,7 @@ type User struct {
 	VerificationStatus string         `gorm:"size:20;default:'none'" json:"verification_status"` // none|pending|approved|rejected
 	AppleUserID        string         `gorm:"size:255;index" json:"-"` // uniqueness enforced in AppleLogin handler
 	DeviceToken        string         `gorm:"size:500" json:"-"`
+	PushEnabled        bool           `gorm:"default:false" json:"push_enabled"` // APNs 推送开关,注册设备令牌时置 true
 	IsAdmin            bool           `gorm:"default:false" json:"-"` // gates /v1/admin/*; flipped manually in the DB
 }
 

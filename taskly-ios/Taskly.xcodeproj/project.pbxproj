@@ -12,6 +12,7 @@
 		16CCBAA92C5D6BFB940BC1F8 /* ApplyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 547E1415038E71673ED9136F /* ApplyView.swift */; };
 		18A5FAE3D676374D1198A94A /* ModerationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED343132959E1F796317D50 /* ModerationSheet.swift */; };
 		1B741B79176A6B587BC7FF2F /* TasklyLogo.swift in Sources */ = {isa = PBXBuildFile; fileRef = D130CDB7D0CE7B63D2C52EC6 /* TasklyLogo.swift */; };
+		1BDF57FE26AA75C3BAA58A09 /* PushManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3715C516736A4F9DD5E930F9 /* PushManager.swift */; };
 		1F9993D0ABEB24AA5042ACAD /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A227AC088CC53C046AFBF7BF /* WebView.swift */; };
 		242622F1993EAA58B276B013 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6C3EE0EF99DE89105E19F4E /* DesignSystem.swift */; };
 		2B67C3F153C1900E84F2D998 /* PostTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3A47007FA31062FBB56F62A /* PostTaskView.swift */; };
@@ -54,6 +55,7 @@
 		202CBF5C2F6B6FCB1B46198E /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		296F9B89E43CFB33494EDCE4 /* TaskDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDetailView.swift; sourceTree = "<group>"; };
 		2EE1D3967DB3162DF57DF2D4 /* Taskly.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Taskly.entitlements; sourceTree = "<group>"; };
+		3715C516736A4F9DD5E930F9 /* PushManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushManager.swift; sourceTree = "<group>"; };
 		37636C1A5DB6E17018596CB2 /* SubmitCompletionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmitCompletionView.swift; sourceTree = "<group>"; };
 		3B94C9650F6320A12312763E /* TasklyApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasklyApp.swift; sourceTree = "<group>"; };
 		3FFA72FF2D2800A79990870E /* VerificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationView.swift; sourceTree = "<group>"; };
@@ -189,6 +191,7 @@
 			children = (
 				6B7810F65FD543A6D5A8DE4B /* Models */,
 				5A43D1FCAC5BC55987A1173F /* Network */,
+				A4448F6A6F4CA8BCEB78843B /* Push */,
 				385326321CC2CC4C14B66C56 /* Utils */,
 				9543966ED65ECD73FC814914 /* Analytics.swift */,
 				C6C3EE0EF99DE89105E19F4E /* DesignSystem.swift */,
@@ -243,6 +246,14 @@
 				7B479E1D23AC821B5DDE87AC /* LaunchScreen.storyboard */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		A4448F6A6F4CA8BCEB78843B /* Push */ = {
+			isa = PBXGroup;
+			children = (
+				3715C516736A4F9DD5E930F9 /* PushManager.swift */,
+			);
+			path = Push;
 			sourceTree = "<group>";
 		};
 		AA1449C9CC0AD8A4262DA4C6 /* Views */ = {
@@ -395,6 +406,7 @@
 				2B67C3F153C1900E84F2D998 /* PostTaskView.swift in Sources */,
 				817F88CBC912DB191E59D8F7 /* PrivacyConsentView.swift in Sources */,
 				BC62B09E97CDE87B82AF17BE /* ProfileView.swift in Sources */,
+				1BDF57FE26AA75C3BAA58A09 /* PushManager.swift in Sources */,
 				A2F81897F4B03554C8F26AC8 /* ReviewView.swift in Sources */,
 				E9CB2AC161B0E5F7740A38F6 /* RootView.swift in Sources */,
 				ACFA8C38D575E81525AAD3AD /* ServiceCardView.swift in Sources */,
@@ -450,7 +462,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = K65RWCXUXM;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -511,7 +523,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = K65RWCXUXM;
 				ENABLE_PREVIEWS = YES;

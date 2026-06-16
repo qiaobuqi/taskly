@@ -177,7 +177,7 @@ Download Taskly and get it done today.
 ```
 https://taskly.cnirv.com/support
 ```
-> ✅ 已部署专门的联系页(含 support@cnirv.com、常见问题、账号删除指引、隐私/条款链接)。
+> ✅ 已部署专门的联系页(含 luyutech@m.cnirv.com、常见问题、账号删除指引、隐私/条款链接)。
 **Marketing URL(可选):** 留空即可。
 
 **Copyright:** `© 2026 cnirv`

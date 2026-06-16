@@ -32,7 +32,7 @@ const privacyHTML = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <h2>Retention &amp; your rights</h2>
 <p>You can delete your account at any time in the app (Profile → Settings → Delete Account), which removes your personal data. You may also contact us to access or correct your data.</p>
 <h2>Contact</h2>
-<p>Email: <a href="mailto:support@cnirv.com">support@cnirv.com</a></p>
+<p>Email: <a href="mailto:luyutech@m.cnirv.com">luyutech@m.cnirv.com</a></p>
 </body></html>`
 
 const termsHTML = `<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -53,7 +53,7 @@ const termsHTML = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <h2>Disclaimer</h2>
 <p>Taskly is a marketplace and is not a party to agreements between users. Use the service at your own risk.</p>
 <h2>Contact</h2>
-<p>Email: <a href="mailto:support@cnirv.com">support@cnirv.com</a></p>
+<p>Email: <a href="mailto:luyutech@m.cnirv.com">luyutech@m.cnirv.com</a></p>
 </body></html>`
 
 const supportHTML = `<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -63,7 +63,7 @@ const supportHTML = `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <h1>Taskly Support</h1>
 <p>Taskly is a local task and service marketplace. Need help? We're happy to assist.</p>
 <h2>Contact us</h2>
-<p>Email: <a href="mailto:support@cnirv.com">support@cnirv.com</a><br>We aim to reply within 1–2 business days.</p>
+<p>Email: <a href="mailto:luyutech@m.cnirv.com">luyutech@m.cnirv.com</a><br>We aim to reply within 1–2 business days.</p>
 <h2>Common questions</h2>
 <ul>
 <li><b>How do payments work?</b> Payment for a task is held securely in escrow and released to the tasker after you confirm the work is done.</li>

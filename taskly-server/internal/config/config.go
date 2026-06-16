@@ -12,6 +12,18 @@ type Config struct {
 	Apple    AppleConfig
 	Commission CommissionConfig
 	DirectMail DirectMailConfig
+	APNS       APNSConfig
+}
+
+// APNSConfig 苹果推送(.p8 Auth Key,token 方式)。与路遇同 Apple Team,复用同一把密钥,
+// 但 bundle_id 用 Taskly 自己的(taskly.cnirv.com)。
+type APNSConfig struct {
+	Enabled  bool
+	CertPath string `mapstructure:"cert_path"` // .p8 文件路径
+	KeyID    string `mapstructure:"key_id"`
+	TeamID   string `mapstructure:"team_id"`
+	BundleID string `mapstructure:"bundle_id"`
+	Sandbox  bool   // true=开发沙盒, false=生产
 }
 
 type DirectMailConfig struct {

@@ -19,6 +19,7 @@ func Setup(r *gin.Engine) {
 	block := handlers.NewBlockHandler()
 	upload := handlers.NewUploadHandler()
 	analytics := handlers.NewAnalyticsHandler()
+	push := handlers.NewPushHandler()
 
 	v1 := r.Group("/v1")
 
@@ -75,6 +76,12 @@ func Setup(r *gin.Engine) {
 	// Wallet
 	api.GET("/wallet", user.GetWallet)
 	api.POST("/wallet/withdraw", user.Withdraw)
+
+	// Push notifications (APNs)
+	api.POST("/push/device-token", push.UpdateDeviceToken)
+	api.GET("/push/settings", push.GetSettings)
+	api.PUT("/push/settings", push.UpdateSettings)
+	api.POST("/push/test", push.Test)
 
 	// Tasks
 	api.POST("/tasks", task.Create)

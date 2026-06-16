@@ -5,6 +5,8 @@ struct TasklyApp: App {
     @StateObject private var authManager = AuthManager.shared
     @StateObject private var router = AppRouter.shared
     @Environment(\.scenePhase) private var scenePhase
+    // 接入 AppDelegate 以接收 APNs 设备令牌回调(SwiftUI 生命周期无此回调)
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     init() {
         // Cold-launch open — first signal for DAU.

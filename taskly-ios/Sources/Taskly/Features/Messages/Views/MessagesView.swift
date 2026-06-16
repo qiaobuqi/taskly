@@ -10,11 +10,14 @@ struct MessagesView: View {
             Group {
                 if !authManager.isLoggedIn {
                     SignInPromptView(message: "Sign in to see your messages")
-                } else if vm.conversations.isEmpty && !vm.isLoading {
+                } else if vm.conversations.isEmpty && vm.isLoading {
+                    // Centered spinner on first load — never a blank list flash.
+                    ProgressView()
+                } else if vm.conversations.isEmpty {
                     ContentUnavailableView(
                         "No Messages",
                         systemImage: "bubble.left.and.bubble.right",
-                        description: Text("Apply for a task to start chatting")
+                        description: Text("Message a poster from any task to start chatting")
                     )
                 } else {
                     List(vm.conversations) { conv in
@@ -35,17 +38,21 @@ struct MessagesView: View {
                 guard authManager.isLoggedIn else { return }
                 await vm.loadConversations()
             }
-            .overlay {
-                if authManager.isLoggedIn && vm.isLoading && vm.conversations.isEmpty {
-                    ProgressView()
-                }
-            }
         }
     }
 }
 
 struct ConversationRowView: View {
     let conversation: Conversation
+
+    // Show "📷 Photo" for image-only messages so no row ever has a blank preview line.
+    private var lastMessagePreview: String {
+        guard let msg = conversation.lastMessage else { return "" }
+        if msg.content.isEmpty, let url = msg.imageUrl, !url.isEmpty {
+            return "📷 Photo"
+        }
+        return msg.content
+    }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -74,7 +81,7 @@ struct ConversationRowView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(conversation.otherUser.nickname).font(.headline)
-                Text(conversation.lastMessage?.content ?? "")
+                Text(lastMessagePreview)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -100,10 +107,7 @@ final class MessagesViewModel: ObservableObject {
     func loadConversations() async {
         isLoading = true
         do {
-            let users: [User] = try await NetworkManager.shared.request("/messages/conversations")
-            conversations = users.map { user in
-                Conversation(id: user.id, otherUser: user, lastMessage: nil, unreadCount: 0)
-            }
+            conversations = try await NetworkManager.shared.request("/messages/conversations")
         } catch {
             print("Failed to load conversations: \(error)")
         }

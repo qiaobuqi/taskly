@@ -5,7 +5,17 @@ import AuthenticationServices
 final class AuthManager: ObservableObject {
     static let shared = AuthManager()
 
-    @Published var isLoggedIn = false
+    @Published var isLoggedIn = false {
+        didSet {
+            // 登录成功后把 APNs 设备令牌补传给后端(覆盖邮箱/Apple/注册等所有登录路径)。
+            // 必须异步派发:session 恢复发生在 AuthManager.init() 内,若同步调用
+            // PushManager 会再次访问正在初始化的 AuthManager.shared,造成 dispatch_once
+            // 死锁崩溃(返回用户冷启动必崩)。Task 推迟到 init 完成后执行,规避重入。
+            if isLoggedIn && !oldValue {
+                Task { @MainActor in PushManager.shared.uploadTokenIfLoggedIn() }
+            }
+        }
+    }
     @Published var currentUser: User?
 
     private init() {

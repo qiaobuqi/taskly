@@ -208,7 +208,7 @@ struct SettingsView: View {
                     }
                 }
                 Section("Support") {
-                    Link("Contact Us", destination: URL(string: "mailto:support@cnirv.com")!)
+                    Link("Contact Us", destination: URL(string: "mailto:luyutech@m.cnirv.com")!)
                 }
                 Section {
                     Button("Sign Out", role: .destructive) {

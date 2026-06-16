@@ -30,6 +30,11 @@ func main() {
 
 	services.StartCron()
 
+	// APNs 推送服务(未配置则静默跳过,不影响主流程)
+	if err := services.InitPush(); err != nil {
+		log.Printf("push init error (continuing without push): %v", err)
+	}
+
 	// 邮件子系统:收信(:25)与提交(:587/:465)服务,各自 goroutine 运行,
 	// 出错只记日志,不影响 Taskly 主 API。由 MAIL_ENABLED=1 开启。
 	mail.InitConfig()

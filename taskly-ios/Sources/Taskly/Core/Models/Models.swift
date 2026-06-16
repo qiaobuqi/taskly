@@ -306,11 +306,26 @@ struct ChatMessage: Codable, Identifiable, Equatable {
     }
 }
 
-struct Conversation: Identifiable {
+struct Conversation: Codable, Identifiable {
     let id: Int
     let otherUser: User
     var lastMessage: ChatMessage?
     var unreadCount: Int
+
+    enum CodingKeys: String, CodingKey {
+        case otherUser = "other_user"
+        case lastMessage = "last_message"
+        case unreadCount = "unread_count"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        otherUser = try c.decode(User.self, forKey: .otherUser)
+        lastMessage = try c.decodeIfPresent(ChatMessage.self, forKey: .lastMessage)
+        unreadCount = try c.decodeIfPresent(Int.self, forKey: .unreadCount) ?? 0
+        // The conversation is identified by the person you're talking to.
+        id = otherUser.id
+    }
 }
 
 // MARK: - Verification

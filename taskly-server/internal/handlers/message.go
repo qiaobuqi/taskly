@@ -2,12 +2,15 @@ package handlers
 
 import (
 	"net/http"
+	"sort"
 	"strconv"
 	"sync"
+	"time"
 
 	"taskly-server/internal/database"
 	"taskly-server/internal/middleware"
 	"taskly-server/internal/models"
+	"taskly-server/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -63,14 +66,28 @@ func (h *MessageHandler) WebSocket(c *gin.Context) {
 		}
 		database.DB.Create(&saved)
 
-		// Push to receiver if online
+		// Push to receiver if online; otherwise send an APNs push.
 		h.mu.RLock()
 		receiverConn, online := h.clients[msg.ReceiverID]
 		h.mu.RUnlock()
 		if online {
 			receiverConn.WriteJSON(saved)
+		} else {
+			var sender models.User
+			database.DB.Select("nickname").First(&sender, uid)
+			services.PushNewMessage(&saved, sender.Nickname)
 		}
 	}
+}
+
+// ConversationDTO is one row in the Messages tab: who you're talking to, the
+// most recent message (for the preview line) and how many of theirs you haven't
+// read. Returning this richly so the list looks like a real inbox instead of a
+// column of bare names (which read as "empty/unfinished" to App Review).
+type ConversationDTO struct {
+	OtherUser   models.User     `json:"other_user"`
+	LastMessage *models.Message `json:"last_message"`
+	UnreadCount int64           `json:"unread_count"`
 }
 
 // GET /v1/messages/conversations
@@ -96,20 +113,47 @@ func (h *MessageHandler) GetConversations(c *gin.Context) {
 		blocked[id] = struct{}{}
 	}
 
-	var users []models.User
+	convos := []ConversationDTO{}
 	for _, row := range rows {
 		if _, isBlocked := blocked[row.OtherID]; isBlocked {
 			continue
 		}
 		var u models.User
-		if database.DB.First(&u, row.OtherID).Error == nil {
-			users = append(users, u)
+		if database.DB.First(&u, row.OtherID).Error != nil {
+			continue
 		}
+
+		var last models.Message
+		hasLast := database.DB.Where(
+			"(sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)",
+			uid, row.OtherID, row.OtherID, uid,
+		).Order("created_at desc").First(&last).Error == nil
+
+		var unread int64
+		database.DB.Model(&models.Message{}).
+			Where("sender_id = ? AND receiver_id = ? AND is_read = false", row.OtherID, uid).
+			Count(&unread)
+
+		dto := ConversationDTO{OtherUser: u, UnreadCount: unread}
+		if hasLast {
+			dto.LastMessage = &last
+		}
+		convos = append(convos, dto)
 	}
-	if users == nil {
-		users = []models.User{}
-	}
-	c.JSON(http.StatusOK, models.OK(users))
+
+	// Most recent conversation first (empty/no-message threads sink to the bottom).
+	sort.SliceStable(convos, func(i, j int) bool {
+		ti, tj := time.Time{}, time.Time{}
+		if convos[i].LastMessage != nil {
+			ti = convos[i].LastMessage.CreatedAt
+		}
+		if convos[j].LastMessage != nil {
+			tj = convos[j].LastMessage.CreatedAt
+		}
+		return ti.After(tj)
+	})
+
+	c.JSON(http.StatusOK, models.OK(convos))
 }
 
 // GET /v1/messages/:userId
