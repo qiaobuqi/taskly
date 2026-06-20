@@ -4,6 +4,24 @@
 
 ## 2026-06-20
 
+### 发布
+
+- **iOS 1.0.1 (10) 已上传 TestFlight**(fastlane `beta`,build 号自动 9→10)。含本日 iOS 端全部改动:
+  登录失败邮箱兜底、apply/post 漏斗埋点、Apple nonce。
+- **后端已部署**:Apple 完整验签 + `aud` 修复(见下)。
+
+### 修复:`aud` 校验错配,真实 Apple 登录被全拒(当日引入、当日修复)
+
+完整验签首次上线时,后端 `aud` 仍按旧配置 `com.taskly.app` 校验,而真实 token 的 `aud` 是
+**`taskly.cnirv.com`**(app 自 `c435788` 起的真实 bundle id),导致所有真实 Apple 登录被判
+`invalid audience` → 401。
+
+- 证据:生产日志里一条成功登录的真实 token 解出 `"aud":"taskly.cnirv.com"`;用它跑验签(跳过过期)
+  签名通过、aud 一致,确认验签正向路径无误,问题纯在配置取值。
+- 修复:`aud` 改为按**逗号分隔允许列表**校验;`apple.bundle_id` 设为
+  `"taskly.cnirv.com,com.taskly.app"`(新旧兼容),本地 `config.yaml` 与生产 `config.prod.yaml` 同步。
+- **教训**:改 iOS bundle id 必须同步后端 `apple.bundle_id`,否则 Apple 登录静默全挂。已写入 `README.md`「易踩的坑 #1」。
+
 ### 排障结论：Apple 登录为什么会失败？（重要，先读这条）
 
 **一句话**：失败的根因是**设备 / 环境侧的 `ASAuthorizationError error 1000`（`.unknown`）**，
