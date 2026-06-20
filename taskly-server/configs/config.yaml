@@ -25,7 +25,10 @@ stripe:
 
 apple:
   team_id: "K65RWCXUXM"
-  bundle_id: "com.taskly.app"
+  # Apple identity-token `aud`. The shipped app's bundle id is taskly.cnirv.com
+  # (changed from com.taskly.app in c435788); allowlist both so neither old nor
+  # new builds get rejected.
+  bundle_id: "taskly.cnirv.com,com.taskly.app"
 
 upload:
   max_size_mb: 10

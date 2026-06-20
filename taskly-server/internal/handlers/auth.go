@@ -259,7 +259,17 @@ func verifyAppleToken(identityToken, rawNonce string) (sub, email string, err er
 	if iss, _ := claims["iss"].(string); iss != "https://appleid.apple.com" {
 		return "", "", fmt.Errorf("invalid issuer")
 	}
-	if !claims.VerifyAudience(config.Global.Apple.BundleID, true) {
+	// `aud` must match the app's bundle id (the real shipped id is taskly.cnirv.com;
+	// com.taskly.app was the pre-c435788 id). config.apple.bundle_id may be a
+	// comma-separated allowlist so a bundle-id change doesn't lock anyone out.
+	audOK := false
+	for _, b := range strings.Split(config.Global.Apple.BundleID, ",") {
+		if claims.VerifyAudience(strings.TrimSpace(b), true) {
+			audOK = true
+			break
+		}
+	}
+	if !audOK {
 		return "", "", fmt.Errorf("invalid audience")
 	}
 	// Replay protection: the client sets request.nonce = sha256hex(rawNonce), and
