@@ -76,6 +76,9 @@ final class PostServiceViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
+        // `post_service_submit` only fires on success — mark the attempt so the
+        // service-post funnel shows attempt → submit and surfaces silent failures.
+        Analytics.shared.track("post_service_attempt", ["category": category.rawValue])
         do {
             struct PostBody: Encodable {
                 let title, description, category, serviceArea, currency: String
@@ -93,6 +96,8 @@ final class PostServiceViewModel: ObservableObject {
             return true
         } catch {
             errorMessage = error.localizedDescription
+            Analytics.shared.track("post_service_failed", ["category": category.rawValue, "desc": error.localizedDescription])
+            Analytics.shared.flush()
             return false
         }
     }

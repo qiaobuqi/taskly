@@ -14,6 +14,9 @@ struct LoginView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showAppleError = false
+    // Raw nonce for the in-flight Apple request; sha256(it) goes to Apple, the
+    // raw value goes to our backend so it can verify the token isn't replayed.
+    @State private var appleNonce = ""
 
     var body: some View {
         ScrollView {
@@ -43,10 +46,17 @@ struct LoginView: View {
         // Apple sign-in failures must be LOUD: a silent failure reads as "the
         // button is unresponsive" (App Review rejected exactly this, twice).
         .alert("Sign in with Apple Failed", isPresented: $showAppleError) {
+            // Apple sign-in failing (error 1000 / .unknown) is usually a temporary
+            // Apple/iCloud/network issue — but for a NEW user it's a dead end, since
+            // they have no email/password yet. Offer a one-tap path into email
+            // registration instead of just "OK".
+            Button("Create account with email") {
+                withAnimation(.easeInOut(duration: 0.2)) { isRegistering = true }
+            }
             Button("OK", role: .cancel) {}
         } message: {
             Text((errorMessage ?? "Something went wrong.")
-                 + "\n\nYou can also sign in with your email and password.")
+                 + "\n\nThis is usually a temporary Apple or network issue. You can try again, or create an account with your email instead.")
         }
     }
 
@@ -138,12 +148,14 @@ struct LoginView: View {
             #endif
             Analytics.shared.track("apple_login_started")
             Analytics.shared.flush()
+            appleNonce = AuthManager.randomNonce()
+            request.nonce = AuthManager.sha256Hex(appleNonce)
             request.requestedScopes = [.fullName, .email]
         } onCompletion: { result in
             Task {
                 isLoading = true
                 do {
-                    try await authManager.handleAppleLogin(result: result)
+                    try await authManager.handleAppleLogin(result: result, nonce: appleNonce)
                 } catch {
                     errorMessage = error.localizedDescription
                     showAppleError = true

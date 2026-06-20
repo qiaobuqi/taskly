@@ -1,5 +1,6 @@
 import SwiftUI
 import AuthenticationServices
+import CryptoKit
 
 @MainActor
 final class AuthManager: ObservableObject {
@@ -45,7 +46,7 @@ final class AuthManager: ObservableObject {
     /// Handles the result from `SignInWithAppleButton`. Throws on failure so the
     /// view can show an error — a silently-swallowed failure is exactly what made
     /// the button look "unresponsive" to App Review (Guideline 2.1).
-    func handleAppleLogin(result: Result<ASAuthorization, Error>) async throws {
+    func handleAppleLogin(result: Result<ASAuthorization, Error>, nonce: String?) async throws {
         switch result {
         case .success(let auth):
             guard let credential = auth.credential as? ASAuthorizationAppleIDCredential,
@@ -57,7 +58,7 @@ final class AuthManager: ObservableObject {
             }
             appleLog("authorization OK — user=\(credential.user) tokenLength=\(token.count) email=\(credential.email ?? "nil")")
             do {
-                try await loginWithApple(identityToken: token, credential: credential)
+                try await loginWithApple(identityToken: token, credential: credential, nonce: nonce)
                 appleLog("backend login OK")
             } catch {
                 trackAppleFailure(stage: "backend", error: error)
@@ -114,18 +115,20 @@ final class AuthManager: ObservableObject {
         #endif
     }
 
-    private func loginWithApple(identityToken: String, credential: ASAuthorizationAppleIDCredential) async throws {
+    private func loginWithApple(identityToken: String, credential: ASAuthorizationAppleIDCredential, nonce: String?) async throws {
         struct AppleLoginBody: Encodable {
             let identityToken: String
             let email: String?
             let fullName: String?
+            let nonce: String?
         }
         let fullName = [credential.fullName?.givenName, credential.fullName?.familyName]
             .compactMap { $0 }.joined(separator: " ")
         let body = AppleLoginBody(
             identityToken: identityToken,
             email: credential.email,
-            fullName: fullName.isEmpty ? nil : fullName
+            fullName: fullName.isEmpty ? nil : fullName,
+            nonce: nonce
         )
 
         struct LoginResponse: Codable {
@@ -199,6 +202,33 @@ final class AuthManager: ObservableObject {
         currentUser = response.user
         isLoggedIn = true
         Analytics.shared.track("sign_up", ["method": "email"])
+    }
+
+    // MARK: - Apple Nonce
+
+    /// A random nonce for a single Sign in with Apple request. The raw value is
+    /// sent to our backend; `sha256(raw)` is what we hand to Apple as
+    /// `request.nonce`, so the server can confirm the token was minted for *this*
+    /// request (replay protection).
+    static func randomNonce(length: Int = 32) -> String {
+        let charset = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._")
+        var result = ""
+        var remaining = length
+        while remaining > 0 {
+            var random: UInt8 = 0
+            _ = SecRandomCopyBytes(kSecRandomDefault, 1, &random)
+            if Int(random) < charset.count {
+                result.append(charset[Int(random)])
+                remaining -= 1
+            }
+        }
+        return result
+    }
+
+    /// SHA256 hex digest, matching the backend's `sha256hex(rawNonce)` check.
+    static func sha256Hex(_ input: String) -> String {
+        SHA256.hash(data: Data(input.utf8))
+            .map { String(format: "%02x", $0) }.joined()
     }
 
     private func fetchCurrentUser() async {

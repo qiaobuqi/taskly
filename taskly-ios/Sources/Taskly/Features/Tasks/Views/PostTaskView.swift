@@ -127,6 +127,10 @@ final class PostTaskViewModel: ObservableObject {
     func post() async -> Bool {
         isLoading = true
         errorMessage = nil
+        // `post_task_submit` only fires on success — mark the attempt up front so
+        // the post funnel shows attempt → submit and surfaces silent failures
+        // (incl. failed image uploads, which abort the post before it reaches /tasks).
+        Analytics.shared.track("post_task_attempt", ["category": category.rawValue])
         do {
             // Upload any attached photos first, then post with their URLs. A failed
             // upload aborts the post (surfacing the error below) — silently posting
@@ -161,6 +165,8 @@ final class PostTaskViewModel: ObservableObject {
             return true
         } catch {
             errorMessage = error.localizedDescription
+            Analytics.shared.track("post_task_failed", ["category": category.rawValue, "desc": error.localizedDescription])
+            Analytics.shared.flush()
             isLoading = false
             return false
         }

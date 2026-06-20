@@ -71,6 +71,10 @@ struct ApplyView: View {
     private func apply() async {
         isLoading = true
         errorMessage = nil
+        // Bracket the request so the apply funnel is visible end-to-end:
+        // attempt → success/failed. Without these, `apply_open` was the last
+        // tracked step and submit failures vs. abandons were indistinguishable.
+        Analytics.shared.track("apply_attempt", ["task_id": task.id])
         do {
             struct ApplyBody: Encodable {
                 let taskId: Int
@@ -83,8 +87,11 @@ struct ApplyView: View {
                 body: ApplyBody(taskId: task.id, message: message, proposedPrice: proposedPrice)
             )
             didApply = true
+            Analytics.shared.track("apply_success", ["task_id": task.id])
         } catch {
             errorMessage = error.localizedDescription
+            Analytics.shared.track("apply_failed", ["task_id": task.id, "desc": error.localizedDescription])
+            Analytics.shared.flush()
         }
         isLoading = false
     }
