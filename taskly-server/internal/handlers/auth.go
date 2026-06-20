@@ -2,7 +2,10 @@ package handlers
 
 import (
 	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,14 +13,17 @@ import (
 	"math/big"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
+	"taskly-server/internal/config"
 	"taskly-server/internal/database"
 	"taskly-server/internal/models"
 	"taskly-server/internal/services"
 	"taskly-server/internal/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -187,13 +193,14 @@ func (h *AuthHandler) AppleLogin(c *gin.Context) {
 		IdentityToken string `json:"identity_token" binding:"required"`
 		Email         string `json:"email"`
 		FullName      string `json:"full_name"`
+		Nonce         string `json:"nonce"` // raw nonce; client set request.nonce = sha256hex(nonce)
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, models.Fail(400, err.Error()))
 		return
 	}
 
-	appleUserID, email, err := parseAppleToken(req.IdentityToken)
+	appleUserID, email, err := verifyAppleToken(req.IdentityToken, req.Nonce)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, models.Fail(401, "invalid apple token"))
 		return
@@ -228,33 +235,48 @@ func (h *AuthHandler) AppleLogin(c *gin.Context) {
 	c.JSON(http.StatusOK, models.OK(gin.H{"token": token, "user": user}))
 }
 
-// parseAppleToken decodes the JWT payload to get sub and email.
-// Production: use apple's public keys to fully verify the signature.
-func parseAppleToken(identityToken string) (sub, email string, err error) {
-	parts := strings.Split(identityToken, ".")
-	if len(parts) != 3 {
-		return "", "", fmt.Errorf("invalid jwt format")
-	}
-	payload := parts[1]
-	// Add base64 padding
-	switch len(payload) % 4 {
-	case 2:
-		payload += "=="
-	case 3:
-		payload += "="
-	}
-	decoded, err := base64.URLEncoding.DecodeString(payload)
+// verifyAppleToken fully validates an Apple identity token: it verifies the
+// RS256 signature against Apple's published public keys, then checks the issuer,
+// audience (must be our bundle id), expiry, and — when present — the nonce.
+// A token that merely *looks* like Apple's (right iss claim, no valid signature)
+// is rejected, closing the impersonation hole the old decode-only path left open.
+func verifyAppleToken(identityToken, rawNonce string) (sub, email string, err error) {
+	var claims jwt.MapClaims
+	_, err = jwt.ParseWithClaims(identityToken, &claims, func(t *jwt.Token) (interface{}, error) {
+		if t.Method.Alg() != "RS256" {
+			return nil, fmt.Errorf("unexpected signing method: %s", t.Method.Alg())
+		}
+		kid, _ := t.Header["kid"].(string)
+		if kid == "" {
+			return nil, fmt.Errorf("missing kid")
+		}
+		return appleKeys.key(kid)
+	})
 	if err != nil {
-		return "", "", err
+		return "", "", err // covers bad signature and expired (exp validated by the lib)
 	}
-	var claims map[string]interface{}
-	if err := json.Unmarshal(decoded, &claims); err != nil {
-		return "", "", err
-	}
-	// Verify issuer
+
 	if iss, _ := claims["iss"].(string); iss != "https://appleid.apple.com" {
 		return "", "", fmt.Errorf("invalid issuer")
 	}
+	if !claims.VerifyAudience(config.Global.Apple.BundleID, true) {
+		return "", "", fmt.Errorf("invalid audience")
+	}
+	// Replay protection: the client sets request.nonce = sha256hex(rawNonce), and
+	// Apple echoes that hash into the token's `nonce` claim. Verify it when present.
+	// Tokens from older app builds carry no nonce claim — those still pass (the
+	// signature/aud checks above are the hard gate), so the server stays
+	// backward-compatible while new builds get replay protection.
+	if tokenNonce, ok := claims["nonce"].(string); ok && tokenNonce != "" {
+		if rawNonce == "" {
+			return "", "", fmt.Errorf("nonce required")
+		}
+		sum := sha256.Sum256([]byte(rawNonce))
+		if hex.EncodeToString(sum[:]) != tokenNonce {
+			return "", "", fmt.Errorf("nonce mismatch")
+		}
+	}
+
 	sub, _ = claims["sub"].(string)
 	email, _ = claims["email"].(string)
 	if sub == "" {
@@ -263,17 +285,83 @@ func parseAppleToken(identityToken string) (sub, email string, err error) {
 	return sub, email, nil
 }
 
-// fetchAppleKeys is kept for future full signature verification
-func fetchAppleKeys() ([]json.RawMessage, error) {
-	resp, err := http.Get("https://appleid.apple.com/auth/keys")
-	if err != nil {
+// appleKeyStore caches Apple's JWKS (https://appleid.apple.com/auth/keys),
+// refetching on a key-id miss (Apple rotates keys) or once the TTL lapses.
+type appleKeyStore struct {
+	mu        sync.RWMutex
+	keys      map[string]*rsa.PublicKey
+	fetchedAt time.Time
+}
+
+var appleKeys = &appleKeyStore{keys: map[string]*rsa.PublicKey{}}
+
+const appleKeysTTL = time.Hour
+
+func (s *appleKeyStore) key(kid string) (*rsa.PublicKey, error) {
+	s.mu.RLock()
+	k, ok := s.keys[kid]
+	fresh := time.Since(s.fetchedAt) < appleKeysTTL
+	s.mu.RUnlock()
+	if ok && fresh {
+		return k, nil
+	}
+	if err := s.refresh(); err != nil {
+		// Serve a stale-but-cached key rather than failing logins on a transient
+		// fetch error.
+		if ok {
+			return k, nil
+		}
 		return nil, err
 	}
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-	var keys struct {
-		Keys []json.RawMessage `json:"keys"`
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if k, ok := s.keys[kid]; ok {
+		return k, nil
 	}
-	json.Unmarshal(body, &keys)
-	return keys.Keys, nil
+	return nil, fmt.Errorf("unknown apple key id: %s", kid)
+}
+
+func (s *appleKeyStore) refresh() error {
+	resp, err := http.Get("https://appleid.apple.com/auth/keys")
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	var jwks struct {
+		Keys []struct {
+			Kid string `json:"kid"`
+			N   string `json:"n"`
+			E   string `json:"e"`
+		} `json:"keys"`
+	}
+	if err := json.Unmarshal(body, &jwks); err != nil {
+		return err
+	}
+	parsed := map[string]*rsa.PublicKey{}
+	for _, k := range jwks.Keys {
+		nBytes, err := base64.RawURLEncoding.DecodeString(k.N)
+		if err != nil {
+			continue
+		}
+		eBytes, err := base64.RawURLEncoding.DecodeString(k.E)
+		if err != nil {
+			continue
+		}
+		parsed[k.Kid] = &rsa.PublicKey{
+			N: new(big.Int).SetBytes(nBytes),
+			E: int(new(big.Int).SetBytes(eBytes).Int64()),
+		}
+	}
+	if len(parsed) == 0 {
+		return fmt.Errorf("apple jwks empty")
+	}
+	s.mu.Lock()
+	s.keys = parsed
+	s.fetchedAt = time.Now()
+	s.mu.Unlock()
+	return nil
 }
